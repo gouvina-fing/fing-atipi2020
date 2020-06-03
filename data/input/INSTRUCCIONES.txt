@@ -1,0 +1,11 @@
+Hay tres imágenes limpias: 
+Img07.pgm
+Img20.pgm
+Img99.pgm
+
+El resto de los archivos corresponden a estas mismas tres imágenes, afectadas con diferentes niveles de ruido. 
+Específicamente, el nombre de cada archivo es de la forma
+ImgxxC0.yy.pgm,
+donde C especifica el tipo de ruido (M = M-ary symmetric,  S = Salt and Pepper), y 0.yy especifica un nivel de ruido.
+
+Deben correr los experimentos para todas las imágenes, y todos los niveles de ruido en el canal adecuado al proyecto. 
