@@ -14,7 +14,16 @@
 // Check if file 'path' exists
 short checkFile(const std::string path);
 
-// Read content from file 'path' and save it in 'result'
+// Read content from file 'path' and get PGM header, saving dimensions in 'width' and 'height'
 short readPGMHeader(const std::string path, short &width, short &height);
+
+// Read content from file 'path' and get PGM content, saving it in 'matrix'
+short readPGMContent(const std::string path, short width, short height, float** matrix);
+
+// Create and write in file 'path' a PGM header with dimensions 'width' and 'height'
+short writePGMHeader(const std::string path, short width, short height);
+
+// Write in file 'path' a binary representation of 'matrix'
+short writePGMContent(const std::string path, short width, short height, float** matrix);
 
 #endif

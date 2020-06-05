@@ -2,7 +2,7 @@
 #include <managers/imageManager.h>
 
 // Read image file 'path' and cast it to image 'img' 
-short read_image(const std::string path, ImageModel img){
+short read_image(const std::string path, ImageModel &img){
 
     // Result code
     short code = OK;
@@ -13,25 +13,48 @@ short read_image(const std::string path, ImageModel img){
         return code;
     }
 
-    // Try to read file content
+    // Try to read file header
     short width, height;
     code = readPGMHeader(path, width, height);
     if (code != OK) {
         return code;
     }
-    // std::cout << width << " " << height << '\n';
 
-    img = { width, height, nullptr };
+    // Try to read file content
+    float** matrix = new float*[width];
+    for(int i = 0; i < width; i++) matrix[i] = new float[height];
+    code = readPGMContent(path, width, height, matrix);
+    if (code != OK) {
+        return code;
+    }
+
+    img = { width, height, matrix };
     return OK;
 }
 
 // Write image 'img' to file 'path'
 short write_image(const std::string path, ImageModel img){
+
+    // Aux variables
+    short code = OK;
+    
+    // Write PGM image header
+    code = writePGMHeader(path, img.getWidth(), img.getHeight());
+    if (code != OK) {
+        return code;
+    }
+
+    // Write PGM image content
+    code = writePGMContent(path, img.getWidth(), img.getHeight(), img.getMatrix());
+    if (code != OK) {
+        return code;
+    }
+
     return OK;
 }
 
 // Copy image 'img_in' into image 'img_out' 
-short copy_image(ImageModel img_in, ImageModel img_out){
+short copy_image(ImageModel img_in, ImageModel &img_out){
     img_out = { img_in.getWidth(), img_in.getHeight(), img_in.getMatrix()};
     return OK;
 }

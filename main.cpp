@@ -37,7 +37,11 @@ int main(int argc, char** argv){
 	dude(img_in.getMatrix(), img_out.getMatrix());
 
 	// Save matrix_out in path_out
-	write_image(path_out, img_out);
+	code = write_image(path_out, img_out); 
+	if (code != OK) {
+		error_msg(code);
+		exit (EXIT_FAILURE);
+	}
 
 	return 0;
 }
