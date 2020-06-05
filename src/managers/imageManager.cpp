@@ -1,25 +1,37 @@
 // Local dependencies
-#include <models/imageModel.h>
 #include <managers/imageManager.h>
-#include <handlers/fileHandler.h>
 
 // Read image file 'path' and cast it to image 'img' 
-bool read_image(const char * path, ImageModel img){
+short read_image(const std::string path, ImageModel img){
+
+    // Result code
+    short code = OK;
 
     // Check if file exists
-    if (!checkFile(path)) return false;
-  
-    img = { 0, 0, nullptr };
-    return true;
+    code = checkFile(path);
+    if (code != OK) {
+        return code;
+    }
+
+    // Try to read file content
+    short width, height;
+    code = readPGMHeader(path, width, height);
+    if (code != OK) {
+        return code;
+    }
+    // std::cout << width << " " << height << '\n';
+
+    img = { width, height, nullptr };
+    return OK;
 }
 
 // Write image 'img' to file 'path'
-bool write_image(const char * path, ImageModel img){
-    return true;
+short write_image(const std::string path, ImageModel img){
+    return OK;
 }
 
 // Copy image 'img_in' into image 'img_out' 
-bool copy_image(ImageModel img_in, ImageModel img_out){
+short copy_image(ImageModel img_in, ImageModel img_out){
     img_out = { img_in.getWidth(), img_in.getHeight(), img_in.getMatrix()};
-    return true;
+    return OK;
 }

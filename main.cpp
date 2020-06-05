@@ -1,31 +1,34 @@
 // Global dependencies
 #include <stdlib.h>
 #include <stdio.h>
-#include <exception>
+#include <string>
 // Local dependencies
+#include <denoiser.h>
 #include <models/imageModel.h>
 #include <managers/imageManager.h>
-#include <denoiser.h>
+#include <handlers/errorHandler.h>
+#include <const.h>
 
 // Main method
 int main(int argc, char** argv){
 
-	const char* path_in;
-	const char* path_out;
+	// Aux return code
+	short code = OK;
 
 	if (argc < 3){
-		printf("Invocar como: './main img_in img_out'.\n");
+		error_msg(ERROR_MAIN_BAD_FORMATTING);
 		exit (EXIT_FAILURE);
 	} 
 	
 	// Read arguments
-	path_in = argv[1];
-	path_out = argv[2];    
+	const std::string path_in(argv[1]);
+	const std::string path_out(argv[2]);   
 
 	// Intiallize and read img_in and img_out
 	ImageModel img_in, img_out;
-	if (!read_image(path_in, img_in)) {
-		printf("(Error) Cannot read input image.\n");
+	code = read_image(path_in, img_in); 
+	if (code != OK) {
+		error_msg(code);
 		exit (EXIT_FAILURE);
 	}
 	copy_image(img_in, img_out);
