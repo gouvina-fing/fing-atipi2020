@@ -51,9 +51,9 @@ int main(int argc, char** argv){
 
 	// Apply DUDE to img_in, save result in img_out
 	if(argv[5]) {
-		dude(delta, k, img_in.getMatrix(), img_prefiltered.getMatrix(), img_out.getMatrix());
+		dude(delta, k, img_in, img_prefiltered, img_out);
 	} else {
-		dude(delta, k, img_in.getMatrix(), NULL, img_out.getMatrix());
+		dude(delta, k, img_in, NULL, img_out);
 	}
 
 	// Save matrix_out in path_out
