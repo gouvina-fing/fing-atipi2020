@@ -22,7 +22,7 @@ int main(int argc, char** argv){
 	
 	// Read arguments
 	const float delta = atof(argv[1]);
-	const int k = atoi(argv[2]);
+	const short k = atoi(argv[2]);
 	const std::string path_in(argv[3]);
 	const std::string path_out(argv[4]);
 	

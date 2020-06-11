@@ -3,9 +3,20 @@
 #include <math.h>
 
 // Methods
-void allocate_memory(float ***A, short height, short width) {
+void allocate_memory(float ***A, float ****histograms, short height, short width, short k) {
+    // Auxiliary context table
     *A = (float**) malloc(height*sizeof(float*));
-    for (int i = 0; i < height; ++i) (*A)[i] = (float*) malloc(width*sizeof(float));
+    for (short i = 0; i < height; ++i) (*A)[i] = (float*) malloc(width*sizeof(float));
+
+    // Context histogram table
+    *histograms = (char**) malloc(height*sizeof(char**));
+    for (short i = 0; i < height; ++i) {
+        (*histograms)[i] = (char**) malloc(width*sizeof(char*));
+        
+        for (int j = 0; j < width; ++j) {
+            (*histograms)[i][j] = (char*) malloc((4+k)*sizeof(char));
+        }
+    }
 
     for (short i = 0; i < height; ++i) {
         for (short j = 0; j < width; ++j) {
@@ -28,12 +39,25 @@ void allocate_memory(float ***A, short height, short width) {
             if ((i == 0) && (j == 0) || (i == 0) && (j == width -1) || (i == height -1) && (j == 0) || (i == height -1) && (j == width -1) ) {
                 *A[i][j] -= 128;
             }
+
+            // Initialize context histogram table
+            for (short histogram = 0; histogram < 4 + k; ++histogram) {
+                (*histograms)[i][j][histogram] = 0;
+            }
         }
     }
 }
 
-void free_memory(float ***A, short height) {
+void free_memory(float ***A, float ****histograms, short height, short width) {
+    // Auxiliary image table
     for (int i = 0; i < height; ++i) free((*A)[i]);
+    free(*A);
+
+    // Histogram table
+    for (short i = 0; i < height; ++i) {
+        for (int j = 0; j < width; ++j) free((*histograms)[i][j]);
+        free((*histograms)[i]);
+    }
     free(*A);
 }
 
@@ -53,7 +77,7 @@ void free_memory(float ***A, short height) {
  |
  |  Args:
  |    - delta (float): Probability that pixel sample goes to 0 or 255 (uniformly)
- |    - k (int): Parameter for context quantization, taking values from [0,8] 
+ |    - k (short): Parameter for context quantization, taking values from [0,8] 
  |    - img_in (ImageModel): Model containing a 2D matrix storing a grayscale image to be denoised.
  |    - img_prefiltered (ImageModel):
  |          - NULL if prefilter is not desired.
@@ -66,11 +90,12 @@ void free_memory(float ***A, short height) {
  |  Raises:
  |    - 
 */
-void dude(float delta, int k, ImageModel img_in, ImageModel img_prefiltered, ImageModel img_out) {
+void dude(float delta, short k, ImageModel img_in, ImageModel img_prefiltered, ImageModel img_out) {
     img_out = img_in;
 
     // Preprocessing
     float **A;
+    short divisor_aux = 256; // 2^8
 
     matrix_in = img_in.getMatrix();
     allocate_memory(&A, img_in.getHeigh(), img_in.getWidth());
@@ -91,6 +116,38 @@ void dude(float delta, int k, ImageModel img_in, ImageModel img_prefiltered, Ima
             A[i][j] /= 8;
             A[i][j] += 0.5;
             A[i][j] = floorf(A[i][j]);
+
+            // Compute f(C) (Histogram Table)
+
+            // F1: North
+            if (i == 0)
+                histogram[i][j][0] = (128 > A[i][j]);
+            else
+                histogram[i][j][0] = (matrix_in[i-1][j] > A[i][j]);
+
+            // F2: East
+            if (j == img_in.getWidth() - 1)
+                histogram[i][j][1] = (128 > A[i][j]);
+            else
+                histogram[i][j][1] = (matrix_in[i][j+1] > A[i][j]);
+
+            // F3: South
+            if (i == img_in.getHeight() - 1)
+                histogram[i][j][2] = (128 > A[i][j]);
+            else
+                histogram[i][j][2] = (matrix_in[i+1][j] > A[i][j]);
+
+            // F4: West
+            if (j == 0)
+                histogram[i][j][3] = (128 > A[i][j]);
+            else
+                histogram[i][j][3] = (matrix_in[i][j-1] > A[i][j]);
+
+            // F5 .. F4+k
+            for (histogram = 4; histogram < 4+k; ++histogram) {
+                divisor_aux /= 2; // 2^(8-k)
+                histogram[i][j][histogram] = floorf(A/divisor_aux);
+            }
         }
     }
 
