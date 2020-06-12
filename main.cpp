@@ -26,7 +26,7 @@ int main(int argc, char** argv){
 	const std::string path_in(argv[3]);
 	const std::string path_out(argv[4]);
 	
-	std::string path_prefiltered = NULL;
+	std::string path_prefiltered;
 	if(argc == 6) {
 		path_prefiltered = argv[5];
 	}
@@ -50,11 +50,7 @@ int main(int argc, char** argv){
 	}
 
 	// Apply DUDE to img_in, save result in img_out
-	if(argv[5]) {
-		dude(delta, k, img_in, img_prefiltered, img_out);
-	} else {
-		dude(delta, k, img_in, NULL, img_out);
-	}
+	dude(delta, k, img_in, img_prefiltered, img_out);
 
 	// Save matrix_out in path_out
 	code = write_image(path_out, img_out); 
