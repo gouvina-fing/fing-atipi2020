@@ -20,9 +20,11 @@ void allocate_memory(float ***A, char ****histograms, short height, short width,
     }
 
     for (short i = 0; i < height; ++i) {
+        
         for (short j = 0; j < width; ++j) {
+            printf("%i,%i\n", i, j);
             // Base value
-            *A[i][j] = 0;
+            *A[i][j] = 0; // FIXME: EXpltoa en 0,512
 
             // Pre-Fill values for borders outside of the images
 
@@ -117,7 +119,7 @@ void dude(float delta, short k, ImageModel img_in, ImageModel img_prefiltered, I
             }
         }
     }
-
+    
     for (short i = 0; i < img_in.getHeight(); ++i) {
         for (short j = 0; j < img_in.getWidth(); ++j) {
             A[i][j] = floorf((A[i][j]/8) + 0.5);
@@ -158,7 +160,6 @@ void dude(float delta, short k, ImageModel img_in, ImageModel img_prefiltered, I
             for (short test = 0; test < 4+k; ++test) {
                 printf("%c", histograms[i][j][test]);
             }
-            printf("\n");
 
         }
     }
