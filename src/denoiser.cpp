@@ -6,46 +6,44 @@
 // Methods
 void allocate_memory(float ***A, char ****histograms, short height, short width, short k) {
     // Auxiliary context table
-    *A = (float**) malloc(height*sizeof(float*));
-    for (short i = 0; i < height; ++i) (*A)[i] = (float*) malloc(width*sizeof(float));
+    *A = new float*[height];
+    for (short i = 0; i < height; ++i) (*A)[i] = new float[width];
 
     // Context histogram table
-    *histograms = (char***) malloc(height*sizeof(char**));
+    *histograms = new char**[height];
     for (short i = 0; i < height; ++i) {
-        (*histograms)[i] = (char**) malloc(width*sizeof(char*));
-        
-        for (int j = 0; j < width; ++j) {
-            (*histograms)[i][j] = (char*) malloc((4+k)*sizeof(char));
-        }
+        (*histograms)[i] = new char*[width];
+        for (short j = 0; j < width; ++j) (*histograms)[i][j] = new char[4+k];
     }
+}
 
+void initialize_data(float **A, char ***histograms, short height, short width, short k) {
     for (short i = 0; i < height; ++i) {
-        
         for (short j = 0; j < width; ++j) {
-            printf("%i,%i\n", i, j);
+
             // Base value
-            *A[i][j] = 0; // FIXME: EXpltoa en 0,512
+            A[i][j] = 0;
 
             // Pre-Fill values for borders outside of the images
 
             // If it's in the north or south border it collides with 3 
             if ((i == 0) || (i == height -1)) {
-                *A[i][j] += 384;
+                A[i][j] += 384;
             }
 
             // If it's in the east or west border it collides with 3 
             if((j == 0) || (j == width -1)) {
-                *A[i][j] += 384;
+                A[i][j] += 384;
             }
 
             // If it's in a corner it collides with 5 (and above we added an extra collision)
             if (((i == 0) && (j == 0)) || ((i == 0) && (j == width -1)) || ((i == height -1) && (j == 0)) || ((i == height -1) && (j == width -1))) {
-                *A[i][j] -= 128;
+                A[i][j] -= 128;
             }
 
             // Initialize context histogram table
             for (short histogram = 0; histogram < 4 + k; ++histogram) {
-                (*histograms)[i][j][histogram] = 0;
+                histograms[i][j][histogram] = 0;
             }
         }
     }
@@ -104,6 +102,7 @@ void dude(float delta, short k, ImageModel img_in, ImageModel img_prefiltered, I
 
     float **matrix_in = img_in.getMatrix();
     allocate_memory(&A, &histograms, img_in.getHeight(), img_in.getWidth(), k);
+    initialize_data(A, histograms, img_in.getHeight(), img_in.getWidth(), k);
 
     // Step 1: Calculate empirical distribution for each context
 
@@ -158,8 +157,9 @@ void dude(float delta, short k, ImageModel img_in, ImageModel img_prefiltered, I
             }
 
             for (short test = 0; test < 4+k; ++test) {
-                printf("%c", histograms[i][j][test]);
+                printf("%i", histograms[i][j][test]);
             }
+            printf("\n");
 
         }
     }
