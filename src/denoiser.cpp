@@ -1,7 +1,7 @@
 // Dependencies
 #include "denoiser.h"
 #include <math.h>
-#include <cstdio>
+#include <cstdio> // TODO: Remove this
 
 // Methods
 void allocate_memory(float ***A, char ****histograms, short height, short width, short k) {
@@ -49,64 +49,12 @@ void initialize_data(float **A, char ***histograms, short height, short width, s
     }
 }
 
-void free_memory(float ***A, char ****histograms, short height, short width) {
-    // Auxiliary image table
-    for (int i = 0; i < height; ++i) free((*A)[i]);
-    free(*A);
-
-    // Histogram table
-    for (short i = 0; i < height; ++i) {
-        for (int j = 0; j < width; ++j) free((*histograms)[i][j]);
-        free((*histograms)[i]);
-    }
-    free(*A);
-}
-
-/*
- |  Processses a grayscale image applying the DUDE algorithm, storing the result in img_out
- |
- |  Preconditions: This implementation of DUDE assumes that:
- |    - Images are grayscale 8bpp, taking values from [0,255]
- |    - The noise that affects the images comes from a Salt & Pepper channel (with parameter delta)
- |    
- |  The denoiser has the following peculiarities:
- |    - Every pixel outside the border of an image has 128 as its value.
- |    - It uses a 3x3 context (the 8 pixels that are immediate neighboors to the one in the center)
- |          (N,E,S,W,NW,NE,SW,SE) following the cardinal directions
- |    - A context C is quantized by extracting f(C), a binary vector of length 4+k bits (where k is a parameter in [0,8]).
- |    - f(C) is used as index in the conditional histogram's table (2^(4+k) histograms)
- |
- |  Args:
- |    - delta (float): Probability that pixel sample goes to 0 or 255 (uniformly)
- |    - k (short): Parameter for context quantization, taking values from [0,8] 
- |    - img_in (ImageModel): Model containing a 2D matrix storing a grayscale image to be denoised.
- |    - img_prefiltered (ImageModel):
- |          - NULL if prefilter is not desired.
- |          - Model containing a 2D matrix storing a grayscale image if prefiltering and iteration are taken into account.
- |    - img_out (ImageModel): Model containing a 2D matrix that will store the result of DUDE
- |  
- |  Returns (int):
- |    - 0 if successful, error code otherwise
- |
- |  Raises:
- |    - 
-*/
-void dude(float delta, short k, ImageModel img_in, ImageModel img_prefiltered, ImageModel img_out) {
-    img_out = img_in;
-
-    // Preprocessing
-    float **A;
-    char ***histograms;
+void compute_context(float **A, char ***histograms, ImageModel img_in, short k) {
     short divisor_aux = 256; // 2^8
     float current_element;
-
     float **matrix_in = img_in.getMatrix();
-    allocate_memory(&A, &histograms, img_in.getHeight(), img_in.getWidth(), k);
-    initialize_data(A, histograms, img_in.getHeight(), img_in.getWidth(), k);
 
-    // Step 1: Calculate empirical distribution for each context
-
-    // Get aux data from the context
+    // Get aux data from the context (sum the value of each pixel to the masks that cover it)
     for (short i = 0; i < img_in.getHeight(); ++i) {
         for (short j = 0; j < img_in.getWidth(); ++j) {
             
@@ -119,6 +67,7 @@ void dude(float delta, short k, ImageModel img_in, ImageModel img_prefiltered, I
         }
     }
     
+    // Compute A and use it to compute the histograms for each context
     for (short i = 0; i < img_in.getHeight(); ++i) {
         for (short j = 0; j < img_in.getWidth(); ++j) {
             A[i][j] = floorf((A[i][j]/8) + 0.5);
@@ -155,14 +104,61 @@ void dude(float delta, short k, ImageModel img_in, ImageModel img_prefiltered, I
                 divisor_aux /= 2; // 2^(8-k)
                 histograms[i][j][histogram] = floorf(current_element/divisor_aux);
             }
-
-            for (short test = 0; test < 4+k; ++test) {
-                printf("%i", histograms[i][j][test]);
-            }
-            printf("\n");
-
         }
     }
+}
+
+void free_memory(float ***A, char ****histograms, short height, short width) {
+    // Auxiliary image table
+    for (int i = 0; i < height; ++i) delete [] (*A)[i];
+    delete [] *A;
+
+    // Histogram table
+    for (short i = 0; i < height; ++i) {
+        for (int j = 0; j < width; ++j) delete [] (*histograms)[i][j];
+        delete [] (*histograms)[i];
+    }
+    delete [] *histograms;
+}
+
+/*
+ |  Processses a grayscale image applying the DUDE algorithm, storing the result in img_out
+ |
+ |  Preconditions: This implementation of DUDE assumes that:
+ |    - Images are grayscale 8bpp, taking values from [0,255]
+ |    - The noise that affects the images comes from a Salt & Pepper channel (with parameter delta)
+ |    
+ |  The denoiser has the following peculiarities:
+ |    - Every pixel outside the border of an image has 128 as its value.
+ |    - It uses a 3x3 context (the 8 pixels that are immediate neighboors to the one in the center)
+ |          (N,E,S,W,NW,NE,SW,SE) following the cardinal directions
+ |    - A context C is quantized by extracting f(C), a binary vector of length 4+k bits (where k is a parameter in [0,8]).
+ |    - f(C) is used as index in the conditional histogram's table (2^(4+k) histograms)
+ |
+ |  Args:
+ |    - delta (float): Probability that pixel sample goes to 0 or 255 (uniformly)
+ |    - k (short): Parameter for context quantization, taking values from [0,8] 
+ |    - img_in (ImageModel): Model containing a 2D matrix storing a grayscale image to be denoised.
+ |    - img_prefiltered (ImageModel):
+ |          - NULL if prefilter is not desired.
+ |          - Model containing a 2D matrix storing a grayscale image if prefiltering and iteration are taken into account.
+ |    - img_out (ImageModel): Model containing a 2D matrix that will store the result of DUDE
+ |  
+ |  Returns (int):
+ |    - 0 if successful, error code otherwise
+ |
+ |  Raises:
+ |    - 
+*/
+void dude(float delta, short k, ImageModel img_in, ImageModel img_prefiltered, ImageModel img_out) {
+    float **A;
+    char ***histograms;
+    
+    allocate_memory(&A, &histograms, img_in.getHeight(), img_in.getWidth(), k);
+    initialize_data(A, histograms, img_in.getHeight(), img_in.getWidth(), k);
+
+    // Step 1: Calculate empirical distribution for each context
+    compute_context(A, histograms, img_in, k);
 
     // Step 2: Calculate the MAP response for each context
 
@@ -171,7 +167,7 @@ void dude(float delta, short k, ImageModel img_in, ImageModel img_prefiltered, I
 
     for (short i = 0; i < img_in.getHeight(); ++i) {
         for (short j = 0; j < img_in.getWidth(); ++j) {
-            current_element = matrix_in[i][j];
+            //current_element = matrix_in[i][j];
 
             /*if(current_element == 0) {
                 
@@ -181,4 +177,8 @@ void dude(float delta, short k, ImageModel img_in, ImageModel img_prefiltered, I
             // Else leave the pixel unchanged (as S&P noise couldn't have affected it)
         }
     }
+
+    free_memory(&A, &histograms, img_in.getHeight(), img_in.getWidth());
+    // TODO: Delete this
+    img_out = img_in;
 }
