@@ -24,6 +24,9 @@ short readPGMHeader(const std::string path, short &width, short &height){
             return ERROR_FILE_BAD_HEADER;
         }
 
+        // TODO: HACK: Remove this for comments
+        std::getline(file, line);
+
         // Line 2: Check PGM image size
         std::getline(file, line);
         short w, h;

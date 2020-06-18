@@ -54,7 +54,7 @@ void initialize_auxiliary_contexts(float **A, ImageModel img_in) {
 }
 
 void initialize_histograms(short **histograms, short histograms_lenght) {
-    printf("%i\n", histograms_lenght);
+    //printf("%i\n", histograms_lenght);
     for (short i = 0; i < histograms_lenght; ++i)
         for (short j = 0; j < M; ++j)
             histograms[i][j] = 0;
@@ -277,7 +277,7 @@ void dude(float delta, short k, ImageModel img_in, ImageModel img_prefiltered, I
 
     pre_processing(A, contexts, histograms, img_in, histograms_lenght, k);
 
-    // Todo crashes when accesing histograms for some k
+    // TODO: FIXME: crashes when accesing histograms for some k values and images
     denoise(contexts, histograms, img_in, histograms_lenght, delta, matrix_out);
 
     /*short height = img_in.getHeight();
