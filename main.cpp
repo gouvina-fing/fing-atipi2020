@@ -9,6 +9,9 @@
 #include <handlers/errorHandler.h>
 #include <const.h>
 
+// TODO: Change images from float to char
+// TODO: Change reader so that it ignores comments on images
+
 // Main method
 int main(int argc, char** argv){
 
