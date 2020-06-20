@@ -71,11 +71,10 @@ short readPGMContent(const std::string path, short width, short height, unsigned
 
         // Loop over matrix, reading bytes and casting them to float
         char c_aux = ' ';
-        for (short i = 0; i < height /*width*/; i++) {
-            for (short j = 0; j < width /*height*/; j++) {
+        for (short i = 0; i < height; i++) {
+            for (short j = 0; j < width; j++) {
                 file.read(reinterpret_cast<char*>(&c_aux), sizeof(char));
                 matrix[i][j] = static_cast<unsigned char>(c_aux);
-                //matrix[i][j] = (unsigned char) c_aux;
             }
         }
         
@@ -119,9 +118,9 @@ short writePGMContent(const std::string path, short width, short height, unsigne
     if (file.is_open()) {
 
         // Loop over matrix and write values as char (binary)
-        for (short i = 0; i < height /*width*/; i++) {
-            for (short j = 0; j < width /*width*/; j++) {
-                file << matrix[i][j]; // TODO: Review if needs casting (char) matrix[i][j];
+        for (short i = 0; i < height; i++) {
+            for (short j = 0; j < width; j++) {
+                file << matrix[i][j];
             }
         }
         
