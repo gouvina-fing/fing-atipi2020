@@ -9,8 +9,10 @@
 #include <handlers/errorHandler.h>
 #include <const.h>
 
-// TODO: Change images from float to char
 // TODO: Change reader so that it ignores comments on images
+// TODO: Integrate utils/diffpnm.c
+// TODO: Implement the img_prefiltered functionality (to denoise denoised images)
+// TODO: Make a script that runs all the required combinations for the experimentations and stores results in named images and a csv
 
 // Main method
 int main(int argc, char** argv){

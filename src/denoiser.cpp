@@ -6,8 +6,13 @@
 
 #define M 256
 
+struct HistogramData {
+    short total_sum;
+    short occurrences[M];
+};
+
 // Methods
-void allocate_memory(float ***A, short ***contexts, short ***histograms, unsigned char ***img_out, ImageModel img_in, short histograms_lenght) {
+void allocate_memory(float ***A, short ***contexts, struct HistogramData **histograms, unsigned char ***img_out, ImageModel img_in, short histograms_lenght) {
     short height = img_in.getHeight();
     short width = img_in.getWidth();
 
@@ -21,8 +26,7 @@ void allocate_memory(float ***A, short ***contexts, short ***histograms, unsigne
         (*img_out)[i] = new unsigned char[width];
     }
 
-    *histograms = new short*[histograms_lenght];
-    for (short i = 0; i < histograms_lenght; ++i) (*histograms)[i] = new short[M];
+    *histograms = new HistogramData[histograms_lenght];
 }
 
 void initialize_auxiliary_contexts(float **A, ImageModel img_in) {
@@ -53,13 +57,15 @@ void initialize_auxiliary_contexts(float **A, ImageModel img_in) {
     }
 }
 
-void initialize_histograms(short **histograms, short histograms_lenght) {
-    for (short i = 0; i < histograms_lenght; ++i)
+void initialize_histograms(struct HistogramData *histograms, short histograms_lenght) {
+    for (short i = 0; i < histograms_lenght; ++i) {
+        histograms[i].total_sum = 0;
         for (short j = 0; j < M; ++j)
-            histograms[i][j] = 0;
+            histograms[i].occurrences[j] = 0;
+    }
 }
 
-void pre_processing(float **A, short **contexts, short **histograms, ImageModel img_in, short histograms_lenght, short k) {
+void pre_processing(float **A, short **contexts, struct HistogramData **histograms, ImageModel img_in, short histograms_lenght, short k) {
     short height = img_in.getHeight();
     short width = img_in.getWidth();
 
@@ -155,55 +161,41 @@ void pre_processing(float **A, short **contexts, short **histograms, ImageModel 
 
             // Record that this context appeared
             current_element = matrix_in[i][j];
-            histograms[context][current_element] += 1;
+            (*histograms)[context].total_sum += 1;
+            (*histograms)[context].occurrences[current_element] += 1;
         }
     }
 }
 
-void denoise(short **contexts, short **histograms, ImageModel img_in, short histograms_lenght, float delta, unsigned char **matrix_out) {
+void denoise(short **contexts, struct HistogramData *histograms, ImageModel img_in, short histograms_lenght, float delta, unsigned char **matrix_out) {
     short height = img_in.getHeight();
     short width = img_in.getWidth();
     unsigned char **matrix_in = img_in.getMatrix();
-    short current_element;
-    unsigned char denoised_pixel;
-    short current_context;
 
     float partial_delta_coef = delta/(2*(1-delta));
-    float delta_coef;
     float inner_delta_coef = (delta/2)*(M-1);
-    int sum, n;
+    // The sum "n" was previously computed for each context and is equal to: histograms[current_context].total_sum
+    
+    short current_element, current_context;
+    float delta_coef;
+    unsigned char denoised_pixel;
+    int sum;
 
     for (short i = 0; i < height; ++i) {
         for (short j = 0; j < width; ++j) {
             current_element = matrix_in[i][j];
             current_context = contexts[i][j];
             
-            if(current_element == 0) {
-                delta_coef = partial_delta_coef/histograms[current_context][current_element];
-
+            if((current_element == 0) || (current_element == M-1)) {
+                delta_coef = partial_delta_coef/histograms[current_context].occurrences[current_element];
                 sum = 0;
-                n = 0;
-                // sum to M-1
-                // TODO: Use the newly computed sums
-                for (short k = 0; k < M; ++k) {
-                    sum += k*histograms[current_context][k];
-                    n += histograms[current_context][k];
-                }
+                for (short k = 0; k < M; ++k) // sum to M-1
+                    sum += k*histograms[current_context].occurrences[k];
 
-                denoised_pixel = delta_coef*(sum - n*inner_delta_coef);
-            } else if (current_element == M-1) {
-                delta_coef = partial_delta_coef/histograms[current_context][current_element];
-
-                sum = 0;
-                n = 0;
-                // sum to M-1
-                // TODO: Use the newly computed sums
-                for (short k = 0; k < M; ++k) {
-                    sum += (M - 1 - k)*histograms[current_context][k];
-                    n += histograms[current_context][k];
-                }
-
-                denoised_pixel = delta_coef*(-sum + n*inner_delta_coef) + M -1;
+                if(current_element == 0)
+                    denoised_pixel = delta_coef*(sum - histograms[current_context].total_sum*inner_delta_coef);
+                else// current_element == M-1
+                    denoised_pixel = delta_coef*(-sum + histograms[current_context].total_sum*inner_delta_coef) + M -1;
             } else { // Leave the pixel unchanged (as S&P noise couldn't have affected it)
                 denoised_pixel = current_element;
             }
@@ -213,7 +205,8 @@ void denoise(short **contexts, short **histograms, ImageModel img_in, short hist
     }
 }
 
-void free_memory(float ***A, short ***contexts, short ***histograms, ImageModel img_in, short histograms_lenght) {
+// TODO: FIXME: Esto explota cuando la imagen es un cuadrado vertical (mas alto que ancho)
+void free_memory(float ***A, short ***contexts, struct HistogramData **histograms, ImageModel img_in) {
     // Context matrix and auxiliary matrix
     for (short i = 0; i < img_in.getHeight(); ++i) {
         delete [] (*A)[i];
@@ -223,11 +216,10 @@ void free_memory(float ***A, short ***contexts, short ***histograms, ImageModel 
     delete [] (*contexts);
 
     // Histogram table
-    for (short i = 0; i < histograms_lenght; ++i) delete [] (*histograms)[i];
     delete [] (*histograms);
 }
 
-// TODO: Review comment
+// TODO: Rewrite comment with the full logic and changes. Maybe move specific details to aux functions
 /*
  |  Processses a grayscale image applying the DUDE algorithm, storing the result in img_out
  |
@@ -261,10 +253,8 @@ void dude(float delta, short k, ImageModel img_in, ImageModel img_prefiltered, I
     float **A;
     unsigned char **matrix_out;
     short **contexts;
-    unsigned char **matrix_in = img_in.getMatrix();
+    struct HistogramData *histograms;
 
-    // TODO: Change histograms for a struct (sum, []). Where sum is the total sum of occurrences of all colors in the context
-    short **histograms;
     short histograms_lenght = pow(2, 4+k);
 
     allocate_memory(&A, &contexts, &histograms, &matrix_out, img_in, histograms_lenght);
@@ -272,16 +262,14 @@ void dude(float delta, short k, ImageModel img_in, ImageModel img_prefiltered, I
     initialize_histograms(histograms, histograms_lenght);
 
     // Step 1: Calculate empirical distribution for each context
-    // Step 2: Calculate the MAP response for each context
-    // Step 3: Estimate each symbol by the MAP response to its context
+    pre_processing(A, contexts, &histograms, img_in, histograms_lenght, k);
 
-    pre_processing(A, contexts, histograms, img_in, histograms_lenght, k);
-
-    // TODO: FIXME: crashes when accesing histograms for some k values and images
+    // Step 2: Estimate each symbol by the calculated MAP response to its context
     denoise(contexts, histograms, img_in, histograms_lenght, delta, matrix_out);
 
     img_out.setHeight(img_in.getHeight());
     img_out.setWidth(img_in.getWidth());
     img_out.setMatrix(matrix_out);
-    free_memory(&A, &contexts, &histograms, img_in, histograms_lenght);
+
+    free_memory(&A, &contexts, &histograms, img_in);
 }
