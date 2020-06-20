@@ -8,7 +8,7 @@ short ImageModel::getWidth() {
 short ImageModel::getHeight() {
     return height;
 }
-float** ImageModel::getMatrix() {
+unsigned char** ImageModel::getMatrix() {
     return matrix;
 }
 
@@ -19,6 +19,6 @@ void ImageModel::setWidth(short w){
 void ImageModel::setHeight(short h){
     height = h;
 }
-void ImageModel::setMatrix(float** m){
+void ImageModel::setMatrix(unsigned char** m){
     matrix = m;
 }

@@ -4,6 +4,6 @@
 #include <models/imageModel.h>
 
 // DUDE algorithm with input 'delta', 'k', 'img_in', 'img_prefiltered, and output 'img_out'
-void dude(float delta, short k, ImageModel img_in, ImageModel img_prefiltered, ImageModel img_out);
+void dude(float delta, short k, ImageModel img_in, ImageModel img_prefiltered, ImageModel &img_out);
 
 #endif

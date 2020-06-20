@@ -7,18 +7,18 @@
 #define M 256
 
 // Methods
-void allocate_memory(float ***A, short ***contexts, short ***histograms, float ***img_out, ImageModel img_in, short histograms_lenght) {
+void allocate_memory(float ***A, short ***contexts, short ***histograms, unsigned char ***img_out, ImageModel img_in, short histograms_lenght) {
     short height = img_in.getHeight();
     short width = img_in.getWidth();
 
     // Context matrix and auxiliary matrix
     *A = new float*[height];
     *contexts = new short*[height];
-    *img_out = new float*[height];
+    *img_out = new unsigned char*[height];
     for (short i = 0; i < height; ++i) {
         (*A)[i] = new float[width];
         (*contexts)[i] = new short[width];
-        (*img_out)[i] = new float[width];
+        (*img_out)[i] = new unsigned char[width];
     }
 
     *histograms = new short*[histograms_lenght];
@@ -65,13 +65,13 @@ void pre_processing(float **A, short **contexts, short **histograms, ImageModel 
     short width = img_in.getWidth();
 
     short current_element, current_aux_context;
-    float **matrix_in = img_in.getMatrix();
+    unsigned char **matrix_in = img_in.getMatrix();
 
     // Get aux data from the context (sum the value of each pixel to the masks that cover it)
     for (short i = 0; i < height; ++i) {
         for (short j = 0; j < height; ++j) {
             
-            current_element = floorf(matrix_in[i][j]);
+            current_element = matrix_in[i][j];
             for(short mask_i = i - 1; (mask_i < i + 2) && (mask_i >= 0) && (mask_i < height); ++mask_i) {
                 for(short mask_j = j - 1; (mask_j < j + 2) && (mask_j >= 0) && (mask_j < height); ++mask_j) {
                     A[mask_i][mask_j] += current_element;
@@ -81,7 +81,7 @@ void pre_processing(float **A, short **contexts, short **histograms, ImageModel 
     }
     
     // Compute A and use it to compute the context for each pixel
-    char aux_bit_condition;
+    unsigned char aux_bit_condition;
     short divisor_aux, context;
     short binary_aux = histograms_lenght/2; // 2^(4+k-1)
     for (short i = 0; i < height; ++i) {
@@ -155,18 +155,18 @@ void pre_processing(float **A, short **contexts, short **histograms, ImageModel 
             contexts[i][j] = context;
 
             // Record that this context appeared
-            current_element = floorf(matrix_in[i][j]);
+            current_element = matrix_in[i][j];
             histograms[context][current_element] += 1;
         }
     }
 }
 
-void denoise(short **contexts, short **histograms, ImageModel img_in, short histograms_lenght, float delta, float **matrix_out) {
+void denoise(short **contexts, short **histograms, ImageModel img_in, short histograms_lenght, float delta, unsigned char **matrix_out) {
     short height = img_in.getHeight();
     short width = img_in.getWidth();
-    float **matrix_in = img_in.getMatrix();
+    unsigned char **matrix_in = img_in.getMatrix();
     short current_element;
-    float denoised_pixel;
+    unsigned char denoised_pixel;
     short current_context;
 
     float partial_delta_coef = delta/(2*(1-delta));
@@ -176,7 +176,7 @@ void denoise(short **contexts, short **histograms, ImageModel img_in, short hist
 
     for (short i = 0; i < height; ++i) {
         for (short j = 0; j < width; ++j) {
-            current_element = floorf(matrix_in[i][j]);
+            current_element = matrix_in[i][j];
             current_context = contexts[i][j];
             
             if(current_element == 0) {
@@ -220,12 +220,12 @@ void free_memory(float ***A, short ***contexts, short ***histograms, ImageModel 
         delete [] (*A)[i];
         delete [] (*contexts)[i];
     } 
-    delete [] *A;
-    delete [] *contexts;
+    delete [] (*A);
+    delete [] (*contexts);
 
     // Histogram table
     for (short i = 0; i < histograms_lenght; ++i) delete [] (*histograms)[i];
-    delete [] *histograms;
+    delete [] (*histograms);
 }
 
 // TODO: Review comment
@@ -258,10 +258,11 @@ void free_memory(float ***A, short ***contexts, short ***histograms, ImageModel 
  |  Raises:
  |    - 
 */
-void dude(float delta, short k, ImageModel img_in, ImageModel img_prefiltered, ImageModel img_out) {
+void dude(float delta, short k, ImageModel img_in, ImageModel img_prefiltered, ImageModel &img_out) {
     float **A;
-    float **matrix_out;
+    unsigned char **matrix_out;
     short **contexts;
+    unsigned char **matrix_in = img_in.getMatrix();
 
     // TODO: Change histograms for a struct (sum, []). Where sum is the total sum of occurrences of all colors in the context
     short **histograms;
@@ -282,18 +283,18 @@ void dude(float delta, short k, ImageModel img_in, ImageModel img_prefiltered, I
 
     /*short height = img_in.getHeight();
     short width = img_in.getWidth();
-    int val;
     for (short i = 0; i < height; ++i) {
         for (short j = 0; j < width; ++j) {
-            val = floorf(matrix_out[i][j]);
-            printf("%i, ", val);
+            //printf("%i, ", val);
+            if (matrix_out[i][j] != matrix_in[i][j]) {
+                printf("%i, changed to: %i \n", matrix_in[i][j], matrix_out[i][j]);
+            }
         }
-        printf("\n");
+        //printf("\n");
     }*/
 
     img_out.setHeight(img_in.getHeight());
     img_out.setWidth(img_in.getWidth());
     img_out.setMatrix(matrix_out);
-    //free_memory(&A, &contexts, &histograms, img_in, histograms_lenght);
-    printf("yatta\n");
+    free_memory(&A, &contexts, &histograms, img_in, histograms_lenght);
 }
