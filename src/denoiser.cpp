@@ -2,16 +2,18 @@
 #include "denoiser.h"
 #include <math.h>
 #include <algorithm>
-#include <cstdio> // TODO: Remove this
+#include <cstdio> // TODO: Remove this (printf)
 
+// TODO: Should this be in denoiser.h?
 #define M 256
 
+// TODO: Should this be in denoiser.h?
 struct HistogramData {
     short total_sum;
     short occurrences[M];
 };
 
-// Methods
+// Allocate memory for all auxiliary variables and for the output image to be written
 void allocate_memory(float ***A, short ***contexts, struct HistogramData **histograms, unsigned char ***img_out, ImageModel img_in, short histograms_lenght) {
     short height = img_in.getHeight();
     short width = img_in.getWidth();
@@ -29,6 +31,7 @@ void allocate_memory(float ***A, short ***contexts, struct HistogramData **histo
     *histograms = new HistogramData[histograms_lenght];
 }
 
+// Initialize auxiliarty context structure
 void initialize_auxiliary_contexts(float **A, ImageModel img_in) {
     short height = img_in.getHeight();
     short width = img_in.getWidth();
@@ -57,6 +60,7 @@ void initialize_auxiliary_contexts(float **A, ImageModel img_in) {
     }
 }
 
+// Initialize auxiliary histogram structure
 void initialize_histograms(struct HistogramData *histograms, short histograms_lenght) {
     for (short i = 0; i < histograms_lenght; ++i) {
         histograms[i].total_sum = 0;
@@ -65,7 +69,8 @@ void initialize_histograms(struct HistogramData *histograms, short histograms_le
     }
 }
 
-void pre_processing(float **A, short **contexts, struct HistogramData **histograms, ImageModel img_in, short histograms_lenght, short k) {
+// Preprocess the image, gathering empirical data from the context that surrounds each pixel and recording its cuantization
+void preprocessing(float **A, short **contexts, struct HistogramData **histograms, ImageModel img_in, short histograms_lenght, short k) {
     short height = img_in.getHeight();
     short width = img_in.getWidth();
 
@@ -167,6 +172,7 @@ void pre_processing(float **A, short **contexts, struct HistogramData **histogra
     }
 }
 
+// Execute DUDE
 void denoise(short **contexts, struct HistogramData *histograms, ImageModel img_in, short histograms_lenght, float delta, unsigned char **matrix_out) {
     short height = img_in.getHeight();
     short width = img_in.getWidth();
@@ -205,6 +211,7 @@ void denoise(short **contexts, struct HistogramData *histograms, ImageModel img_
     }
 }
 
+// Free all memory that was created for auxiliary structures
 // TODO: FIXME: Esto explota cuando la imagen es un cuadrado vertical (mas alto que ancho)
 void free_memory(float ***A, short ***contexts, struct HistogramData **histograms, ImageModel img_in) {
     // Context matrix and auxiliary matrix
@@ -219,7 +226,7 @@ void free_memory(float ***A, short ***contexts, struct HistogramData **histogram
     delete [] (*histograms);
 }
 
-// TODO: Rewrite comment with the full logic and changes. Maybe move specific details to aux functions
+// TODO: Make it return an int? I don't think there is any specific error we can catch and return an error code.
 /*
  |  Processses a grayscale image applying the DUDE algorithm, storing the result in img_out
  |
@@ -232,14 +239,16 @@ void free_memory(float ***A, short ***contexts, struct HistogramData **histogram
  |    - It uses a 3x3 context (the 8 pixels that are immediate neighboors to the one in the center)
  |          (N,E,S,W,NW,NE,SW,SE) following the cardinal directions
  |    - A context C is quantized by extracting f(C), a binary vector of length 4+k bits (where k is a parameter in [0,8]).
- |    - f(C) is used as index in the conditional histogram's table (2^(4+k) histograms)
+ |    - f(C) is used as index in the conditional histogram's table (there are 2^(4+k) possible contexts for each pixel value)
+ |    - After that it applies the previously calculated formula for denoising a S&P channel.
+ |          using "the number of a pixel on a specific context" as "the number of occurences (n_i)"
  |
  |  Args:
  |    - delta (float): Probability that pixel sample goes to 0 or 255 (uniformly)
  |    - k (short): Parameter for context quantization, taking values from [0,8] 
  |    - img_in (ImageModel): Model containing a 2D matrix storing a grayscale image to be denoised.
  |    - img_prefiltered (ImageModel):
- |          - NULL if prefilter is not desired.
+ |          - Empty ImageModel if prefilter is not desired.
  |          - Model containing a 2D matrix storing a grayscale image if prefiltering and iteration are taken into account.
  |    - img_out (ImageModel): Model containing a 2D matrix that will store the result of DUDE
  |  
@@ -262,7 +271,7 @@ void dude(float delta, short k, ImageModel img_in, ImageModel img_prefiltered, I
     initialize_histograms(histograms, histograms_lenght);
 
     // Step 1: Calculate empirical distribution for each context
-    pre_processing(A, contexts, &histograms, img_in, histograms_lenght, k);
+    preprocessing(A, contexts, &histograms, img_in, histograms_lenght, k);
 
     // Step 2: Estimate each symbol by the calculated MAP response to its context
     denoise(contexts, histograms, img_in, histograms_lenght, delta, matrix_out);
