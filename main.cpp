@@ -55,20 +55,6 @@ int main(int argc, char** argv){
 	// Apply DUDE to img_in, save result in img_out
 	dude(delta, k, img_in, img_prefiltered, img_out);
 
-	/*unsigned char **matrix_in = img_in.getMatrix();
-	unsigned char **matrix_out = img_out.getMatrix();
-	short height = img_in.getHeight();
-	short width = img_in.getWidth();
-	for (short i = 0; i < height; ++i) {
-			for (short j = 0; j < width; ++j) {
-					//printf("%i, ", val);
-					if (matrix_out[i][j] != matrix_in[i][j]) {
-							printf("%i, changed to: %i \n", matrix_in[i][j], matrix_out[i][j]);
-					}
-			}
-			//printf("\n");
-	}*/
-
 	// Save matrix_out in path_out
 	code = write_image(path_out, img_out); 
 	if (code != OK) {
