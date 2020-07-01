@@ -24,11 +24,11 @@ short readPGMHeader(const std::string path, short &width, short &height){
             return ERROR_FILE_BAD_HEADER;
         }
 
-        // TODO: HACK: Remove this for comments
+        // Line 2: Check if comment
+        // If there is, read another line and check for dimensions
+        // If not, check for dimensions in this line
         std::getline(file, line);
-
-        // Line 2: Check PGM image size
-        std::getline(file, line);
+        if(line.at(0) == '#') std::getline(file, line);
         short w, h;
         std::istringstream iss(line);
         if (!(iss >> w >> h)) {
@@ -64,9 +64,10 @@ short readPGMContent(const std::string path, short width, short height, unsigned
         // Aux string for reading lines
         std::string line;
 
-        // Line 1,2,3: Ignored
+        // Line 1,2,3: Ignored (4 if there is comment)
         std::getline(file, line);
         std::getline(file, line);
+        if(line.at(0) == '#') std::getline(file, line);
         std::getline(file, line);
 
         // Loop over matrix, reading bytes and casting them to float

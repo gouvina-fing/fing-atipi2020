@@ -37,6 +37,9 @@ short write_image(const std::string path, ImageModel img){
 
     // Aux variables
     short code = OK;
+
+    // Remove image if it already exists
+    remove(path.c_str());
     
     // Write PGM image header
     code = writePGMHeader(path, img.getWidth(), img.getHeight());
