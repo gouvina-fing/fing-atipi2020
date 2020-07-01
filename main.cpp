@@ -9,6 +9,11 @@
 #include <handlers/errorHandler.h>
 #include <const.h>
 
+// TODO: Change reader so that it ignores comments on images
+// TODO: Integrate utils/diffpnm.c
+// TODO: Implement the img_prefiltered functionality (to denoise denoised images)
+// TODO: Make a script that runs all the required combinations for the experimentations and stores results in named images and a csv
+
 // Main method
 int main(int argc, char** argv){
 
@@ -22,11 +27,11 @@ int main(int argc, char** argv){
 	
 	// Read arguments
 	const float delta = atof(argv[1]);
-	const int k = atoi(argv[2]);
+	const short k = atoi(argv[2]);
 	const std::string path_in(argv[3]);
 	const std::string path_out(argv[4]);
 	
-	std::string path_prefiltered = NULL;
+	std::string path_prefiltered;
 	if(argc == 6) {
 		path_prefiltered = argv[5];
 	}
@@ -50,11 +55,7 @@ int main(int argc, char** argv){
 	}
 
 	// Apply DUDE to img_in, save result in img_out
-	if(argv[5]) {
-		dude(delta, k, img_in.getMatrix(), img_prefiltered.getMatrix(), img_out.getMatrix());
-	} else {
-		dude(delta, k, img_in.getMatrix(), NULL, img_out.getMatrix());
-	}
+	dude(delta, k, img_in, img_prefiltered, img_out);
 
 	// Save matrix_out in path_out
 	code = write_image(path_out, img_out); 

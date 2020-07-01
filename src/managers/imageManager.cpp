@@ -21,8 +21,8 @@ short read_image(const std::string path, ImageModel &img){
     }
 
     // Try to read file content
-    float** matrix = new float*[width];
-    for(int i = 0; i < width; i++) matrix[i] = new float[height];
+    unsigned char** matrix = new unsigned char*[height];
+    for(int i = 0; i < height; i++) matrix[i] = new unsigned char[width];
     code = readPGMContent(path, width, height, matrix);
     if (code != OK) {
         return code;

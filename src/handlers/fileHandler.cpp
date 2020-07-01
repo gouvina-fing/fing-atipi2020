@@ -24,6 +24,9 @@ short readPGMHeader(const std::string path, short &width, short &height){
             return ERROR_FILE_BAD_HEADER;
         }
 
+        // TODO: HACK: Remove this for comments
+        std::getline(file, line);
+
         // Line 2: Check PGM image size
         std::getline(file, line);
         short w, h;
@@ -53,7 +56,7 @@ short readPGMHeader(const std::string path, short &width, short &height){
 }
 
 // Read content from file 'path' and get PGM content, saving it in 'matrix'
-short readPGMContent(const std::string path, short width, short height, float** matrix){
+short readPGMContent(const std::string path, short width, short height, unsigned char** matrix){
     
     std::ifstream file(path, std::ios::binary);
     if (file.is_open()) {
@@ -68,10 +71,10 @@ short readPGMContent(const std::string path, short width, short height, float** 
 
         // Loop over matrix, reading bytes and casting them to float
         char c_aux = ' ';
-        for (short i = 0; i < width; i++) {
-            for (short j = 0; j < height; j++) {
+        for (short i = 0; i < height; i++) {
+            for (short j = 0; j < width; j++) {
                 file.read(reinterpret_cast<char*>(&c_aux), sizeof(char));
-                matrix[i][j] = (float) c_aux;
+                matrix[i][j] = static_cast<unsigned char>(c_aux);
             }
         }
         
@@ -109,15 +112,15 @@ short writePGMHeader(const std::string path, short width, short height) {
 }
 
 // Write in file 'path' a binary representation of 'matrix'
-short writePGMContent(const std::string path, short width, short height, float** matrix) {
+short writePGMContent(const std::string path, short width, short height, unsigned char** matrix) {
 
     std::ofstream file(path, std::ios_base::app);
     if (file.is_open()) {
 
-        // Loop over matrix and write float values as char (binary)
-        for (short i = 0; i < width; i++) {
-            for (short j = 0; j < height; j++) {
-                file << (char) matrix[i][j];
+        // Loop over matrix and write values as char (binary)
+        for (short i = 0; i < height; i++) {
+            for (short j = 0; j < width; j++) {
+                file << matrix[i][j];
             }
         }
         
