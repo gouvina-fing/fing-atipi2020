@@ -6,15 +6,15 @@ struct ImageModel {
 
     // Properties
     short width, height;
-    unsigned char** matrix;
+    char** matrix;
 
     // Getters & Setters
     short getWidth();
     void setWidth(short w);
     short getHeight();
     void setHeight(short h);
-    unsigned char** getMatrix();
-    void setMatrix(unsigned char** m);
+    char** getMatrix();
+    void setMatrix(char** m);
 };
 
 #endif

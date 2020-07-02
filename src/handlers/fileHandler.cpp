@@ -8,6 +8,23 @@ short checkFile(const std::string path) {
     return ERROR_FILE_UNKNOWN;
 }
 
+// Get file name as string from 'path'
+std::string getFileName(const std::string path) { 
+    
+    std::stringstream test(path);
+    std::string segment;
+
+    std::vector<std::string> seglist;
+    std::vector<std::string>::iterator it;
+
+    while(std::getline(test, segment, '/')) {
+        it = seglist.begin();
+        seglist.insert(it, segment);
+    }
+
+    return seglist.front();
+}
+
 // Read content from file 'path' and get PGM header, saving dimensions in 'width' and 'height'
 short readPGMHeader(const std::string path, short &width, short &height){
     
@@ -56,7 +73,7 @@ short readPGMHeader(const std::string path, short &width, short &height){
 }
 
 // Read content from file 'path' and get PGM content, saving it in 'matrix'
-short readPGMContent(const std::string path, short width, short height, unsigned char** matrix){
+short readPGMContent(const std::string path, short width, short height, char** matrix){
     
     std::ifstream file(path, std::ios::binary);
     if (file.is_open()) {
@@ -71,11 +88,9 @@ short readPGMContent(const std::string path, short width, short height, unsigned
         std::getline(file, line);
 
         // Loop over matrix, reading bytes and casting them to float
-        char c_aux = ' ';
         for (short i = 0; i < height; i++) {
             for (short j = 0; j < width; j++) {
-                file.read(reinterpret_cast<char*>(&c_aux), sizeof(char));
-                matrix[i][j] = static_cast<unsigned char>(c_aux);
+                file.read(reinterpret_cast<char*>(&matrix[i][j]), 1);
             }
         }
         
@@ -88,43 +103,28 @@ short readPGMContent(const std::string path, short width, short height, unsigned
     return OK;
 }
 
-// Create and write in file 'path' a PGM header with dimensions 'width' and 'height'
-short writePGMHeader(const std::string path, short width, short height) {
-    
-    std::ofstream file(path);
+// Create and write in file 'path' a PGM header with dimensions 'width' and 'height' and a binary representation of 'matrix'
+short writePGM(const std::string path, short width, short height, char** matrix) {
+
+    std::ofstream file(path, std::ios_base::binary);
     if (file.is_open()) {
 
         // Line 1: Check PGM start
         file << "P5" << std::endl;
 
         // Line 2: Check PGM image size
-        file << std::to_string(width) << " " << std::to_string(height) << std::endl;
+        file << width << " " << height << std::endl;
 
         // Line 3: Check PGM bpp
-        file << "255" << std::endl;
-        
-    } else {
-        file.close();
-        return ERROR_FILE_DAMAGED;
-    }
+        file << 255 << std::endl;
 
-    file.close();
-    return OK;
-}
-
-// Write in file 'path' a binary representation of 'matrix'
-short writePGMContent(const std::string path, short width, short height, unsigned char** matrix) {
-
-    std::ofstream file(path, std::ios_base::app);
-    if (file.is_open()) {
-
-        // Loop over matrix and write values as char (binary)
+        // Loop over matrix and write values as char (binary)        
         for (short i = 0; i < height; i++) {
             for (short j = 0; j < width; j++) {
-                file << matrix[i][j];
+                file.write(reinterpret_cast<const char*>(&matrix[i][j]), 1);
             }
         }
-        
+
     } else {
         file.close();
         return ERROR_FILE_DAMAGED;

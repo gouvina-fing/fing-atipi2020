@@ -21,8 +21,8 @@ short read_image(const std::string path, ImageModel &img){
     }
 
     // Try to read file content
-    unsigned char** matrix = new unsigned char*[height];
-    for(int i = 0; i < height; i++) matrix[i] = new unsigned char[width];
+    char** matrix = new char*[height];
+    for (int i = 0; i < height; i++) matrix[i] = new char[width];
     code = readPGMContent(path, width, height, matrix);
     if (code != OK) {
         return code;
@@ -40,15 +40,9 @@ short write_image(const std::string path, ImageModel img){
 
     // Remove image if it already exists
     remove(path.c_str());
-    
-    // Write PGM image header
-    code = writePGMHeader(path, img.getWidth(), img.getHeight());
-    if (code != OK) {
-        return code;
-    }
 
     // Write PGM image content
-    code = writePGMContent(path, img.getWidth(), img.getHeight(), img.getMatrix());
+    code = writePGM(path, img.getWidth(), img.getHeight(), img.getMatrix());
     if (code != OK) {
         return code;
     }
@@ -58,6 +52,8 @@ short write_image(const std::string path, ImageModel img){
 
 // Copy image 'img_in' into image 'img_out' 
 short copy_image(ImageModel img_in, ImageModel &img_out){
-    img_out = { img_in.getWidth(), img_in.getHeight(), img_in.getMatrix()};
+    img_out.setWidth(img_in.getWidth());
+    img_out.setHeight(img_in.getHeight());
+    img_out.setMatrix(img_in.getMatrix());
     return OK;
 }

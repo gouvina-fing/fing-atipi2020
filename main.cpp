@@ -9,8 +9,6 @@
 #include <handlers/errorHandler.h>
 #include <const.h>
 
-// TODO: Change reader so that it ignores comments on images
-// TODO: Integrate utils/diffpnm.c
 // TODO: Implement the img_prefiltered functionality (to denoise denoised images)
 // TODO: Make a script that runs all the required combinations for the experimentations and stores results in named images and a csv
 
@@ -55,10 +53,10 @@ int main(int argc, char** argv){
 	}
 
 	// Apply DUDE to img_in, save result in img_out
-	dude(delta, k, img_in, img_prefiltered, img_out);
+	//dude(delta, k, img_in, img_prefiltered, img_out);
 
 	// Save matrix_out in path_out
-	code = write_image(path_out, img_out); 
+	code = write_image(path_out, img_in); 
 	if (code != OK) {
 		error_msg(code);
 		exit (EXIT_FAILURE);
