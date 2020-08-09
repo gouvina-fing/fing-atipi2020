@@ -22,9 +22,9 @@ std::string getFileName(const std::string path);
 short readPGMHeader(const std::string path, short &width, short &height);
 
 // Read content from file 'path' and get PGM content, saving it in 'matrix'
-short readPGMContent(const std::string path, short width, short height, char** matrix);
+short readPGMContent(const std::string path, short width, short height, unsigned char** matrix);
 
 // Write in file 'path' a binary representation of 'matrix'
-short writePGM(const std::string path, short width, short height, char** matrix);
+short writePGM(const std::string path, short width, short height, unsigned char** matrix);
 
 #endif

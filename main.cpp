@@ -53,10 +53,10 @@ int main(int argc, char** argv){
 	}
 
 	// Apply DUDE to img_in, save result in img_out
-	//dude(delta, k, img_in, img_prefiltered, img_out);
+	dude(delta, k, img_in, img_prefiltered, img_out);
 
 	// Save matrix_out in path_out
-	code = write_image(path_out, img_in); 
+	code = write_image(path_out, img_out); 
 	if (code != OK) {
 		error_msg(code);
 		exit (EXIT_FAILURE);

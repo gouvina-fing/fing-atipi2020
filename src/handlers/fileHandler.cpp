@@ -73,7 +73,7 @@ short readPGMHeader(const std::string path, short &width, short &height){
 }
 
 // Read content from file 'path' and get PGM content, saving it in 'matrix'
-short readPGMContent(const std::string path, short width, short height, char** matrix){
+short readPGMContent(const std::string path, short width, short height, unsigned char** matrix){
     
     std::ifstream file(path, std::ios::binary);
     if (file.is_open()) {
@@ -87,10 +87,14 @@ short readPGMContent(const std::string path, short width, short height, char** m
         if(line.at(0) == '#') std::getline(file, line);
         std::getline(file, line);
 
+        char c_aux = ' ';
+
         // Loop over matrix, reading bytes and casting them to float
         for (short i = 0; i < height; i++) {
             for (short j = 0; j < width; j++) {
-                file.read(reinterpret_cast<char*>(&matrix[i][j]), 1);
+                file.read(reinterpret_cast<char*>(&c_aux), sizeof(char));
+                matrix[i][j] = static_cast<unsigned char>(c_aux);
+                // file.read(reinterpret_cast<unsigned char*>(&matrix[i][j]), 1);
             }
         }
         
@@ -104,7 +108,7 @@ short readPGMContent(const std::string path, short width, short height, char** m
 }
 
 // Create and write in file 'path' a PGM header with dimensions 'width' and 'height' and a binary representation of 'matrix'
-short writePGM(const std::string path, short width, short height, char** matrix) {
+short writePGM(const std::string path, short width, short height, unsigned char** matrix) {
 
     std::ofstream file(path, std::ios_base::binary);
     if (file.is_open()) {
@@ -121,7 +125,8 @@ short writePGM(const std::string path, short width, short height, char** matrix)
         // Loop over matrix and write values as char (binary)        
         for (short i = 0; i < height; i++) {
             for (short j = 0; j < width; j++) {
-                file.write(reinterpret_cast<const char*>(&matrix[i][j]), 1);
+                file << matrix[i][j];
+                // file.write(reinterpret_cast<const unsigned unsigned char*>(&matrix[i][j]), 1);
             }
         }
 

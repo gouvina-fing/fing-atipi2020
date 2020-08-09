@@ -14,18 +14,18 @@ struct HistogramData {
 };
 
 // Allocate memory for all auxiliary variables and for the output image to be written
-void allocate_memory(float ***A, short ***contexts, struct HistogramData **histograms, char ***img_out, ImageModel img_in, short histograms_lenght) {
+void allocate_memory(float ***A, short ***contexts, struct HistogramData **histograms, unsigned char ***img_out, ImageModel img_in, short histograms_lenght) {
     short height = img_in.getHeight();
     short width = img_in.getWidth();
 
     // Context matrix and auxiliary matrix
     *A = new float*[height];
     *contexts = new short*[height];
-    *img_out = new char*[height];
+    *img_out = new unsigned char*[height];
     for (short i = 0; i < height; ++i) {
         (*A)[i] = new float[width];
         (*contexts)[i] = new short[width];
-        (*img_out)[i] = new char[width];
+        (*img_out)[i] = new unsigned char[width];
     }
 
     *histograms = new HistogramData[histograms_lenght];
@@ -75,7 +75,7 @@ void preprocessing(float **A, short **contexts, struct HistogramData **histogram
     short width = img_in.getWidth();
 
     short current_element, current_aux_context;
-    char **matrix_in = img_in.getMatrix();
+    unsigned char **matrix_in = img_in.getMatrix();
 
     // Get aux data from the context (sum the value of each pixel to the masks that cover it)
     for (short i = 0; i < height; ++i) {
@@ -91,7 +91,7 @@ void preprocessing(float **A, short **contexts, struct HistogramData **histogram
     }
     
     // Compute A and use it to compute the context for each pixel
-    char aux_bit_condition;
+    unsigned char aux_bit_condition;
     short divisor_aux, context;
     short binary_aux = histograms_lenght/2; // 2^(4+k-1)
     for (short i = 0; i < height; ++i) {
@@ -173,10 +173,10 @@ void preprocessing(float **A, short **contexts, struct HistogramData **histogram
 }
 
 // Execute DUDE
-void denoise(short **contexts, struct HistogramData *histograms, ImageModel img_in, short histograms_lenght, float delta, char **matrix_out) {
+void denoise(short **contexts, struct HistogramData *histograms, ImageModel img_in, short histograms_lenght, float delta, unsigned char **matrix_out) {
     short height = img_in.getHeight();
     short width = img_in.getWidth();
-    char **matrix_in = img_in.getMatrix();
+    unsigned char **matrix_in = img_in.getMatrix();
 
     float partial_delta_coef = delta/(2*(1-delta));
     float inner_delta_coef = (delta/2)*(M-1);
@@ -184,7 +184,7 @@ void denoise(short **contexts, struct HistogramData *histograms, ImageModel img_
     
     short current_element, current_context;
     float delta_coef;
-    char denoised_pixel;
+    unsigned char denoised_pixel;
     int sum;
 
     for (short i = 0; i < height; ++i) {
@@ -260,7 +260,7 @@ void free_memory(float ***A, short ***contexts, struct HistogramData **histogram
 */
 void dude(float delta, short k, ImageModel img_in, ImageModel img_prefiltered, ImageModel &img_out) {
     float **A;
-    char **matrix_out;
+    unsigned char **matrix_out;
     short **contexts;
     struct HistogramData *histograms;
 
@@ -280,5 +280,5 @@ void dude(float delta, short k, ImageModel img_in, ImageModel img_prefiltered, I
     img_out.setWidth(img_in.getWidth());
     img_out.setMatrix(matrix_out);
 
-    free_memory(&A, &contexts, &histograms, img_in);
+    // free_memory(&A, &contexts, &histograms, img_in);
 }
