@@ -11,6 +11,9 @@ short ImageModel::getHeight() {
 unsigned char** ImageModel::getMatrix() {
     return matrix;
 }
+bool ImageModel::getEmpty() {
+    return empty;
+}
 
 // Setters
 void ImageModel::setWidth(short w){
@@ -21,4 +24,7 @@ void ImageModel::setHeight(short h){
 }
 void ImageModel::setMatrix(unsigned char** m){
     matrix = m;
+}
+void ImageModel::setEmpty(bool e) {
+    empty = e;
 }

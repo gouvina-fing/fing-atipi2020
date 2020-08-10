@@ -70,18 +70,19 @@ void initialize_histograms(struct HistogramData *histograms, short histograms_le
 }
 
 // Preprocess the image, gathering empirical data from the context that surrounds each pixel and recording its cuantization
-void preprocessing(float **A, short **contexts, struct HistogramData **histograms, ImageModel img_in, short histograms_lenght, short k) {
+void preprocessing(float **A, short **contexts, struct HistogramData **histograms, ImageModel img_in, ImageModel context_img_in, short histograms_lenght, short k) {
     short height = img_in.getHeight();
     short width = img_in.getWidth();
 
     short current_element, current_aux_context;
     unsigned char **matrix_in = img_in.getMatrix();
+    unsigned char **matrix_in_context = context_img_in.getMatrix();
 
     // Get aux data from the context (sum the value of each pixel to the masks that cover it)
     for (short i = 0; i < height; ++i) {
         for (short j = 0; j < height; ++j) {
             
-            current_element = matrix_in[i][j];
+            current_element = matrix_in_context[i][j];
             for(short mask_i = i - 1; (mask_i < i + 2) && (mask_i >= 0) && (mask_i < height); ++mask_i) {
                 for(short mask_j = j - 1; (mask_j < j + 2) && (mask_j >= 0) && (mask_j < height); ++mask_j) {
                     A[mask_i][mask_j] += current_element;
@@ -102,13 +103,11 @@ void preprocessing(float **A, short **contexts, struct HistogramData **histogram
             // Compute f(C) (Histogram Table)
             context = 0;
 
-            // TODO: is there a way to achieve this in less lines?
-
             // F1: North
             if (i == 0)
                 aux_bit_condition = (128 > current_aux_context);
             else
-                aux_bit_condition = (matrix_in[i-1][j] > current_aux_context);
+                aux_bit_condition = (matrix_in_context[i-1][j] > current_aux_context);
 
             if (aux_bit_condition)
                 context += binary_aux; // binary_aux = 2^(k+3)
@@ -119,7 +118,7 @@ void preprocessing(float **A, short **contexts, struct HistogramData **histogram
             if (j == width - 1)
                 aux_bit_condition = (128 > current_aux_context);
             else
-                aux_bit_condition = (matrix_in[i][j+1] > current_aux_context);
+                aux_bit_condition = (matrix_in_context[i][j+1] > current_aux_context);
             
             if (aux_bit_condition)
                 context += binary_aux; // binary_aux = 2^(k+2)
@@ -130,7 +129,7 @@ void preprocessing(float **A, short **contexts, struct HistogramData **histogram
             if (i == height - 1)
                 aux_bit_condition = (128 > current_aux_context);
             else
-                aux_bit_condition = (matrix_in[i+1][j] > current_aux_context);
+                aux_bit_condition = (matrix_in_context[i+1][j] > current_aux_context);
             
             if (aux_bit_condition)
                 context += binary_aux; // binary_aux = 2^(k+1)
@@ -141,7 +140,7 @@ void preprocessing(float **A, short **contexts, struct HistogramData **histogram
             if (j == 0)
                 aux_bit_condition = (128 > current_aux_context);
             else
-                aux_bit_condition = (matrix_in[i][j-1] > current_aux_context);
+                aux_bit_condition = (matrix_in_context[i][j-1] > current_aux_context);
             
             if (aux_bit_condition)
                 context += binary_aux; // binary_aux = 2^(k)
@@ -164,7 +163,7 @@ void preprocessing(float **A, short **contexts, struct HistogramData **histogram
             // Save result
             contexts[i][j] = context;
 
-            // Record that this context appeared
+            // Record that this context appeared (In the original input image)
             current_element = matrix_in[i][j];
             (*histograms)[context].total_sum += 1;
             (*histograms)[context].occurrences[current_element] += 1;
@@ -191,7 +190,7 @@ void denoise(short **contexts, struct HistogramData *histograms, ImageModel img_
         for (short j = 0; j < width; ++j) {
             current_element = matrix_in[i][j];
             current_context = contexts[i][j];
-            
+
             if((current_element == 0) || (current_element == M-1)) {
                 delta_coef = partial_delta_coef/histograms[current_context].occurrences[current_element];
                 sum = 0;
@@ -267,11 +266,19 @@ void dude(float delta, short k, ImageModel img_in, ImageModel img_prefiltered, I
     short histograms_lenght = pow(2, 4+k);
 
     allocate_memory(&A, &contexts, &histograms, &matrix_out, img_in, histograms_lenght);
-    initialize_auxiliary_contexts(A, img_in);
     initialize_histograms(histograms, histograms_lenght);
 
     // Step 1: Calculate empirical distribution for each context
-    preprocessing(A, contexts, &histograms, img_in, histograms_lenght, k);
+    if(img_prefiltered.getEmpty()) {
+        // If no prefiltered image is provided we compute C from the input image
+        initialize_auxiliary_contexts(A, img_in);
+        preprocessing(A, contexts, &histograms, img_in, img_in, histograms_lenght, k);
+        
+    } else {
+        // If a prefiltered image is provided we compute C from it, (histograms are still accounted comparing with the input one)
+        initialize_auxiliary_contexts(A, img_prefiltered);
+        preprocessing(A, contexts, &histograms, img_in, img_prefiltered, histograms_lenght, k);
+    }
 
     // Step 2: Estimate each symbol by the calculated MAP response to its context
     denoise(contexts, histograms, img_in, histograms_lenght, delta, matrix_out);

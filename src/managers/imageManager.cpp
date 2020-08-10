@@ -28,7 +28,7 @@ short read_image(const std::string path, ImageModel &img){
         return code;
     }
 
-    img = { width, height, matrix };
+    img = { width, height, matrix, false };
     return OK;
 }
 
@@ -55,5 +55,6 @@ short copy_image(ImageModel img_in, ImageModel &img_out){
     img_out.setWidth(img_in.getWidth());
     img_out.setHeight(img_in.getHeight());
     img_out.setMatrix(img_in.getMatrix());
+    img_out.setEmpty(false);
     return OK;
 }

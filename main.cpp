@@ -50,6 +50,8 @@ int main(int argc, char** argv){
 			error_msg(code);
 			exit (EXIT_FAILURE);
 		}
+	} else {
+		img_prefiltered.setEmpty(true);
 	}
 
 	// Apply DUDE to img_in, save result in img_out
