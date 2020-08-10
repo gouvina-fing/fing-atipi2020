@@ -81,7 +81,6 @@ void preprocessing(float **A, short **contexts, struct HistogramData **histogram
     // Get aux data from the context (sum the value of each pixel to the masks that cover it)
     for (short i = 0; i < height; ++i) {
         for (short j = 0; j < height; ++j) {
-            
             current_element = matrix_in_context[i][j];
             for(short mask_i = i - 1; (mask_i < i + 2) && (mask_i >= 0) && (mask_i < height); ++mask_i) {
                 for(short mask_j = j - 1; (mask_j < j + 2) && (mask_j >= 0) && (mask_j < height); ++mask_j) {
@@ -92,11 +91,13 @@ void preprocessing(float **A, short **contexts, struct HistogramData **histogram
     }
     
     // Compute A and use it to compute the context for each pixel
-    unsigned char aux_bit_condition;
+    bool aux_bit_condition;
     short divisor_aux, context;
-    short binary_aux = histograms_lenght/2; // 2^(4+k-1)
+    short binary_aux;
+    
     for (short i = 0; i < height; ++i) {
         for (short j = 0; j < width; ++j) {
+            binary_aux = histograms_lenght/2; // 2^(4+k-1)
             current_aux_context = floorf((A[i][j]/8) + 0.5);
             A[i][j] = current_aux_context;
 
@@ -266,17 +267,16 @@ void dude(float delta, short k, ImageModel img_in, ImageModel img_prefiltered, I
     short histograms_lenght = pow(2, 4+k);
 
     allocate_memory(&A, &contexts, &histograms, &matrix_out, img_in, histograms_lenght);
+    initialize_auxiliary_contexts(A, img_in);
     initialize_histograms(histograms, histograms_lenght);
 
     // Step 1: Calculate empirical distribution for each context
     if(img_prefiltered.getEmpty()) {
         // If no prefiltered image is provided we compute C from the input image
-        initialize_auxiliary_contexts(A, img_in);
         preprocessing(A, contexts, &histograms, img_in, img_in, histograms_lenght, k);
         
     } else {
         // If a prefiltered image is provided we compute C from it, (histograms are still accounted comparing with the input one)
-        initialize_auxiliary_contexts(A, img_prefiltered);
         preprocessing(A, contexts, &histograms, img_in, img_prefiltered, histograms_lenght, k);
     }
 
