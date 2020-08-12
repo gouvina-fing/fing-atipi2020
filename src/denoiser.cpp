@@ -112,7 +112,7 @@ void preprocessing(float **A, short **contexts, struct HistogramData **histogram
 
             if (aux_bit_condition)
                 context += binary_aux; // binary_aux = 2^(k+3)
-            
+
             binary_aux /= 2;
 
             // F2: East
@@ -121,8 +121,12 @@ void preprocessing(float **A, short **contexts, struct HistogramData **histogram
             else
                 aux_bit_condition = (matrix_in_context[i][j+1] > current_aux_context);
             
-            if (aux_bit_condition)
+            if (aux_bit_condition) {
+                /*if (j != width - 1) {
+                    printf("previous context: %i. %i > %i, adding %i \n", context, matrix_in_context[i][j+1], current_aux_context, binary_aux);
+                }*/
                 context += binary_aux; // binary_aux = 2^(k+2)
+            }
             
             binary_aux /= 2;
 
@@ -195,13 +199,16 @@ void denoise(short **contexts, struct HistogramData *histograms, ImageModel img_
             if((current_element == 0) || (current_element == M-1)) {
                 delta_coef = partial_delta_coef/histograms[current_context].occurrences[current_element];
                 sum = 0;
-                for (short k = 0; k < M; ++k) // sum to M-1
-                    sum += k*histograms[current_context].occurrences[k];
 
-                if(current_element == 0)
+                if(current_element == 0) {
+                    for (short k = 0; k < M; ++k) // sum to M-1
+                        sum += k*histograms[current_context].occurrences[k];
                     denoised_pixel = delta_coef*(sum - histograms[current_context].total_sum*inner_delta_coef);
-                else// current_element == M-1
+                } else { // current_element == M-1
+                    for (short k = 0; k < M; ++k) // sum to M-1
+                        sum += (M - 1 - k)*histograms[current_context].occurrences[k];
                     denoised_pixel = delta_coef*(-sum + histograms[current_context].total_sum*inner_delta_coef) + M -1;
+                }
             } else { // Leave the pixel unchanged (as S&P noise couldn't have affected it)
                 denoised_pixel = current_element;
             }
