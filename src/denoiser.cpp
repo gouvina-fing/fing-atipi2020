@@ -14,25 +14,25 @@ struct HistogramData {
 };
 
 // Allocate memory for all auxiliary variables and for the output image to be written
-void allocate_memory(float ***A, short ***contexts, struct HistogramData **histograms, unsigned char ***img_out, ImageModel img_in, short histograms_lenght) {
+void allocate_memory(short ***A, short ***contexts, struct HistogramData **histograms, unsigned char ***img_out, ImageModel img_in, short histograms_length) {
     short height = img_in.getHeight();
     short width = img_in.getWidth();
 
     // Context matrix and auxiliary matrix
-    *A = new float*[height];
+    *A = new short*[height];
     *contexts = new short*[height];
     *img_out = new unsigned char*[height];
     for (short i = 0; i < height; ++i) {
-        (*A)[i] = new float[width];
+        (*A)[i] = new short[width];
         (*contexts)[i] = new short[width];
         (*img_out)[i] = new unsigned char[width];
     }
 
-    *histograms = new HistogramData[histograms_lenght];
+    *histograms = new HistogramData[histograms_length];
 }
 
 // Initialize auxiliarty context structure
-void initialize_auxiliary_contexts(float **A, ImageModel img_in) {
+void initialize_auxiliary_contexts(short **A, ImageModel img_in) {
     short height = img_in.getHeight();
     short width = img_in.getWidth();
     for (short i = 0; i < height; ++i) {
@@ -61,8 +61,8 @@ void initialize_auxiliary_contexts(float **A, ImageModel img_in) {
 }
 
 // Initialize auxiliary histogram structure
-void initialize_histograms(struct HistogramData *histograms, short histograms_lenght) {
-    for (short i = 0; i < histograms_lenght; ++i) {
+void initialize_histograms(struct HistogramData *histograms, short histograms_length) {
+    for (short i = 0; i < histograms_length; ++i) {
         histograms[i].total_sum = 0;
         for (short j = 0; j < M; ++j)
             histograms[i].occurrences[j] = 0;
@@ -70,7 +70,7 @@ void initialize_histograms(struct HistogramData *histograms, short histograms_le
 }
 
 // Preprocess the image, gathering empirical data from the context that surrounds each pixel and recording its cuantization
-void preprocessing(float **A, short **contexts, struct HistogramData **histograms, ImageModel img_in, ImageModel context_img_in, short histograms_lenght, short k) {
+void preprocessing(short **A, short **contexts, struct HistogramData **histograms, ImageModel img_in, ImageModel context_img_in, short histograms_length, short k) {
     short height = img_in.getHeight();
     short width = img_in.getWidth();
 
@@ -80,10 +80,10 @@ void preprocessing(float **A, short **contexts, struct HistogramData **histogram
 
     // Get aux data from the context (sum the value of each pixel to the masks that cover it)
     for (short i = 0; i < height; ++i) {
-        for (short j = 0; j < height; ++j) {
+        for (short j = 0; j < width; ++j) {
             current_element = matrix_in_context[i][j];
             for(short mask_i = i - 1; (mask_i < i + 2) && (mask_i >= 0) && (mask_i < height); ++mask_i) {
-                for(short mask_j = j - 1; (mask_j < j + 2) && (mask_j >= 0) && (mask_j < height); ++mask_j) {
+                for(short mask_j = j - 1; (mask_j < j + 2) && (mask_j >= 0) && (mask_j < width); ++mask_j) {
                     A[mask_i][mask_j] += current_element;
                 }
             }
@@ -97,7 +97,7 @@ void preprocessing(float **A, short **contexts, struct HistogramData **histogram
     
     for (short i = 0; i < height; ++i) {
         for (short j = 0; j < width; ++j) {
-            binary_aux = histograms_lenght/2; // 2^(4+k-1)
+            binary_aux = histograms_length/2; // 2^(4+k-1)
             current_aux_context = floorf((A[i][j]/8) + 0.5);
             A[i][j] = current_aux_context;
 
@@ -122,9 +122,6 @@ void preprocessing(float **A, short **contexts, struct HistogramData **histogram
                 aux_bit_condition = (matrix_in_context[i][j+1] > current_aux_context);
             
             if (aux_bit_condition) {
-                /*if (j != width - 1) {
-                    printf("previous context: %i. %i > %i, adding %i \n", context, matrix_in_context[i][j+1], current_aux_context, binary_aux);
-                }*/
                 context += binary_aux; // binary_aux = 2^(k+2)
             }
             
@@ -153,18 +150,8 @@ void preprocessing(float **A, short **contexts, struct HistogramData **histogram
             binary_aux /= 2;
 
             // F5 .. F4+k
-            // binary_aux = 2^k - 1
-            divisor_aux = 256; // 2^8
-            for (short histogram = 0; histogram < k; ++histogram) {
-                divisor_aux /= 2; // 2^(8-i)
-                aux_bit_condition = floorf(current_aux_context/divisor_aux);
-                if (aux_bit_condition) {
-                    context += binary_aux; // binary_aux = 2^(k+1)
-                    current_aux_context -= divisor_aux; // subtract highest bit
-                }
-                binary_aux /= 2; // binary_aux = 2^(k-i)
-            }
-            
+            context += floorf(A[i][j]/pow(2, 8-k));
+
             // Save result
             contexts[i][j] = context;
 
@@ -177,7 +164,7 @@ void preprocessing(float **A, short **contexts, struct HistogramData **histogram
 }
 
 // Execute DUDE
-void denoise(short **contexts, struct HistogramData *histograms, ImageModel img_in, short histograms_lenght, float delta, unsigned char **matrix_out) {
+void denoise(short **contexts, struct HistogramData *histograms, ImageModel img_in, short histograms_length, float delta, unsigned char **matrix_out) {
     short height = img_in.getHeight();
     short width = img_in.getWidth();
     unsigned char **matrix_in = img_in.getMatrix();
@@ -220,7 +207,7 @@ void denoise(short **contexts, struct HistogramData *histograms, ImageModel img_
 
 // Free all memory that was created for auxiliary structures
 // TODO: FIXME: Esto explota cuando la imagen es un cuadrado vertical (mas alto que ancho)
-void free_memory(float ***A, short ***contexts, struct HistogramData **histograms, ImageModel img_in) {
+void free_memory(short ***A, short ***contexts, struct HistogramData **histograms, ImageModel img_in) {
     // Context matrix and auxiliary matrix
     for (short i = 0; i < img_in.getHeight(); ++i) {
         delete [] (*A)[i];
@@ -266,29 +253,29 @@ void free_memory(float ***A, short ***contexts, struct HistogramData **histogram
  |    - 
 */
 void dude(float delta, short k, ImageModel img_in, ImageModel img_prefiltered, ImageModel &img_out) {
-    float **A;
+    short **A;
     unsigned char **matrix_out;
     short **contexts;
     struct HistogramData *histograms;
 
-    short histograms_lenght = pow(2, 4+k);
+    short histograms_length = pow(2, 4+k);
 
-    allocate_memory(&A, &contexts, &histograms, &matrix_out, img_in, histograms_lenght);
+    allocate_memory(&A, &contexts, &histograms, &matrix_out, img_in, histograms_length);
     initialize_auxiliary_contexts(A, img_in);
-    initialize_histograms(histograms, histograms_lenght);
+    initialize_histograms(histograms, histograms_length);
 
     // Step 1: Calculate empirical distribution for each context
     if(img_prefiltered.getEmpty()) {
         // If no prefiltered image is provided we compute C from the input image
-        preprocessing(A, contexts, &histograms, img_in, img_in, histograms_lenght, k);
+        preprocessing(A, contexts, &histograms, img_in, img_in, histograms_length, k);
         
     } else {
         // If a prefiltered image is provided we compute C from it, (histograms are still accounted comparing with the input one)
-        preprocessing(A, contexts, &histograms, img_in, img_prefiltered, histograms_lenght, k);
+        preprocessing(A, contexts, &histograms, img_in, img_prefiltered, histograms_length, k);
     }
 
     // Step 2: Estimate each symbol by the calculated MAP response to its context
-    denoise(contexts, histograms, img_in, histograms_lenght, delta, matrix_out);
+    denoise(contexts, histograms, img_in, histograms_length, delta, matrix_out);
 
     img_out.setHeight(img_in.getHeight());
     img_out.setWidth(img_in.getWidth());
