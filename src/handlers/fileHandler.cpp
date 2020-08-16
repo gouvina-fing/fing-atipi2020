@@ -45,7 +45,7 @@ short readPGMHeader(const std::string path, short &width, short &height){
         // If there is, read another line and check for dimensions
         // If not, check for dimensions in this line
         std::getline(file, line);
-        if(line.at(0) == '#') std::getline(file, line);
+        while(line.at(0) == '#') std::getline(file, line);
         short w, h;
         std::istringstream iss(line);
         if (!(iss >> w >> h)) {
