@@ -84,7 +84,7 @@ short readPGMContent(const std::string path, short width, short height, unsigned
         // Line 1,2,3: Ignored (4 if there is comment)
         std::getline(file, line);
         std::getline(file, line);
-        if(line.at(0) == '#') std::getline(file, line);
+        while(line.at(0) == '#') std::getline(file, line);
         std::getline(file, line);
 
         char c_aux = ' ';
