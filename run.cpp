@@ -32,68 +32,68 @@ int main(int argc, char** argv){
 	const short op = atoi(argv[1]);
 	const std::string prefix = argv[2];
 
-	// TODO: Delete
-	const short k = 1;
-
 	const std::string global_path_in = "data/input/img_noisy/salt-and-pepper/";
 	const std::string global_path_out = "data/output/";
 
 	add_directory(global_path_out + "tables");
-	
-	for (const auto & entry : fs::directory_iterator(global_path_in)) {
 
-		// Create auxiliary variables
-		ImageModel img_in, img_prefiltered, img_out;
+	switch (op) {
 
-		// Get current image's file name
-		const std::string file_path = entry.path().string();
-		const std::string file_name = get_file_name(file_path);
+		case 1:
+			for (const auto & entry : fs::directory_iterator(global_path_in)) {
+				// Create auxiliary variables
+				ImageModel img_in, img_prefiltered, img_out;
 
-		// Get current image's params
-		const std::string root = parse_base(file_name);
-		const std::string base = parse_extension(file_name);
-		const float delta = parse_delta(file_name);
+				// Get current image's file name
+				const std::string file_path = entry.path().string();
+				const std::string file_name = get_file_name(file_path);
 
-		// Create directory if it doesn't exist for saving image's denoised version
-		add_directory(global_path_out + base);
-		add_directory(global_path_out + "tables/" + root);
-		
-		// Read current image and copy it for out image
-		code = read_image(file_path, img_in); 
-		if (code != OK) {
-			error_msg(code);
-			exit (EXIT_FAILURE);
-		}
-		
-		// Iterate over k to generate each result
-		for (short k = 0; k < 9; k++) {
+				// Get current image's params
+				const std::string root = parse_base(file_name);
+				const std::string base = parse_extension(file_name);
+				const float delta = parse_delta(file_name);
 
-			// Get img_in once more
-			copy_image(img_in, img_out);
+				// Create directory if it doesn't exist for saving image's denoised version
+				add_directory(global_path_out + base);
+				add_directory(global_path_out + "tables/" + root);
+				
+				// Read current image and copy it for out image
+				code = read_image(file_path, img_in); 
+				if (code != OK) {
+					error_msg(code);
+					exit (EXIT_FAILURE);
+				}
+				
+				// Iterate over k to generate each result
+				for (short k = 0; k < 9; k++) {
 
-			// Execute DUDE with given params
-			dude(delta, k, img_in, img_prefiltered, img_out);
+					// Get img_in once more
+					copy_image(img_in, img_out);
 
-			// Format current image's denoised version file name
-			std::string path_out = global_path_out + base + "/" + prefix + "K" + std::to_string(k) + file_name;
+					// Execute DUDE with given params
+					dude(delta, k, img_in, img_prefiltered, img_out);
 
-			// Write current image's denoised version
-			code = write_image(path_out, img_out); 
-			if (code != OK) {
-				error_msg(code);
-				exit (EXIT_FAILURE);
+					// Format current image's denoised version file name
+					std::string path_out = global_path_out + base + "/" + prefix + "K" + std::to_string(k) + file_name;
+
+					// Write current image's denoised version
+					code = write_image(path_out, img_out); 
+					if (code != OK) {
+						error_msg(code);
+						exit (EXIT_FAILURE);
+					}
+					
+					// Execute diff between original image and denoised image
+					const std::string diff_cmd = "./bin/diffpnm " + file_path + " " + path_out;
+					const std::string diff_result = parse_PSNR(exec(diff_cmd.c_str()));
+
+					// Write CSV line with PSNR for k value
+					path_out = global_path_out + "tables/" + root + "/" + prefix + base + ".csv";
+					std::string csv_text = csv_text + std::to_string(k) + "," + diff_result;
+					write_table(path_out, csv_text);
+				}
 			}
-			
-			// Execute diff between original image and denoised image
-			const std::string diff_cmd = "./bin/diffpnm " + file_path + " " + path_out;
-			const std::string diff_result = parse_PSNR(exec(diff_cmd.c_str()));
-
-			// Write CSV line with PSNR for k value
-			path_out = global_path_out + "tables/" + root + "/" + prefix + base + ".csv";
-			std::string csv_text = csv_text + std::to_string(k) + "," + diff_result;
-			write_table(path_out, csv_text);
-		}
-		
+			break;
 	}
 
 	return 0;
