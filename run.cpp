@@ -34,8 +34,8 @@ int main(int argc, char** argv){
 
 	const std::string global_path_in = "data/input/img_noisy/salt-and-pepper/";
 	const std::string global_path_out = "data/output/";
-
-	add_directory(global_path_out + "tables");
+	const std::string global_path_results = "data/results/";
+	add_directory(global_path_results);
 
 	switch (op) {
 
@@ -55,7 +55,7 @@ int main(int argc, char** argv){
 
 				// Create directory if it doesn't exist for saving image's denoised version
 				add_directory(global_path_out + base);
-				add_directory(global_path_out + "tables/" + root);
+				add_directory(global_path_results + root);
 				
 				// Read current image and copy it for out image
 				code = read_image(file_path, img_in); 
@@ -88,7 +88,7 @@ int main(int argc, char** argv){
 					const std::string diff_result = parse_PSNR(exec(diff_cmd.c_str()));
 
 					// Write CSV line with PSNR for k value
-					path_out = global_path_out + "tables/" + root + "/" + prefix + base + ".csv";
+					path_out = global_path_results + root + "/" + prefix + base + ".csv";
 					std::string csv_text = csv_text + std::to_string(k) + "," + diff_result;
 					write_table(path_out, csv_text);
 				}

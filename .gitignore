@@ -34,3 +34,4 @@
 # Ignore aux folders
 .vscode
 bin/*
+data/output/*
