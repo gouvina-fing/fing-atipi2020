@@ -14,6 +14,7 @@ const unsigned short ERROR_FILE_DAMAGED = 3;
 const unsigned short ERROR_FILE_BAD_HEADER = 4;
 const unsigned short ERROR_FILE_BAD_DIMENSIONS = 5;
 const unsigned short ERROR_FILE_BAD_BPP = 6;
+const unsigned short ERROR_DIRECTORY = 7;
 
 // Function return messages
 // Main errors

@@ -2,14 +2,14 @@
 #include <handlers/fileHandler.h>
 
 // Check if file 'path' exists
-short checkFile(const std::string path) { 
+short check_file(const std::string path) { 
     std::ifstream file(path);
     if (file.good()) return OK;
     return ERROR_FILE_UNKNOWN;
 }
 
 // Get file name as string from 'path'
-std::string getFileName(const std::string path) { 
+std::string get_file_name(const std::string path) { 
     
     std::stringstream test(path);
     std::string segment;
@@ -25,8 +25,17 @@ std::string getFileName(const std::string path) {
     return seglist.front();
 }
 
+// Create directory specified in 'path'
+short add_directory(const std::string path) {
+
+    if (std::filesystem::create_directory(path))
+        return OK;
+    else
+        return ERROR_DIRECTORY;
+}
+
 // Read content from file 'path' and get PGM header, saving dimensions in 'width' and 'height'
-short readPGMHeader(const std::string path, short &width, short &height){
+short read_PGM_header(const std::string path, short &width, short &height){
     
     std::ifstream file(path);
     if (file.is_open()) {
@@ -73,7 +82,7 @@ short readPGMHeader(const std::string path, short &width, short &height){
 }
 
 // Read content from file 'path' and get PGM content, saving it in 'matrix'
-short readPGMContent(const std::string path, short width, short height, unsigned char** matrix){
+short read_PGM_content(const std::string path, short width, short height, unsigned char** matrix){
     
     std::ifstream file(path, std::ios::binary);
     if (file.is_open()) {
@@ -108,7 +117,7 @@ short readPGMContent(const std::string path, short width, short height, unsigned
 }
 
 // Create and write in file 'path' a PGM header with dimensions 'width' and 'height' and a binary representation of 'matrix'
-short writePGM(const std::string path, short width, short height, unsigned char** matrix) {
+short write_PGM(const std::string path, short width, short height, unsigned char** matrix) {
 
     std::ofstream file(path, std::ios_base::binary);
     if (file.is_open()) {
@@ -130,6 +139,21 @@ short writePGM(const std::string path, short width, short height, unsigned char*
             }
         }
 
+    } else {
+        file.close();
+        return ERROR_FILE_DAMAGED;
+    }
+
+    file.close();
+    return OK;
+}
+
+// Create and write in file 'path' a CSV table contained in text
+short write_CSV(const std::string path, const std::string text) {
+
+    std::ofstream file(path, std::ios_base::app);
+    if (file.is_open()) {
+        file << text << std::endl;
     } else {
         file.close();
         return ERROR_FILE_DAMAGED;
