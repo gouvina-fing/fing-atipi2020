@@ -23,17 +23,17 @@ int main(int argc, char** argv){
 	// Aux return code
 	short code = OK;
 
-	if (argc < 3) {
+	if (argc < 2) {
 		error_msg(ERROR_MAIN_BAD_FORMATTING);
 		exit (EXIT_FAILURE);
 	}
 
 	// Read arguments
 	const short op = atoi(argv[1]);
-	const std::string prefix = argv[2];
 
 	const std::string global_path_in = "data/input/img_noisy/salt-and-pepper/";
 	const std::string global_path_out = "data/output/";
+	const std::string global_path_original = "data/input/img_clean/";
 	const std::string global_path_results = "data/results/";
 	add_directory(global_path_results);
 
@@ -74,7 +74,7 @@ int main(int argc, char** argv){
 					dude(delta, k, img_in, img_prefiltered, img_out);
 
 					// Format current image's denoised version file name
-					std::string path_out = global_path_out + base + "/" + prefix + "K" + std::to_string(k) + file_name;
+					std::string path_out = global_path_out + base + "/" + "K" + std::to_string(k) + file_name;
 
 					// Write current image's denoised version
 					code = write_image(path_out, img_out); 
@@ -84,11 +84,12 @@ int main(int argc, char** argv){
 					}
 					
 					// Execute diff between original image and denoised image
-					const std::string diff_cmd = "./bin/diffpnm " + file_path + " " + path_out;
+					const std::string original_path = global_path_original + root + ".pgm";
+					const std::string diff_cmd = "./bin/diffpnm " + original_path + " " + path_out;
 					const std::string diff_result = parse_PSNR(exec(diff_cmd.c_str()));
 
 					// Write CSV line with PSNR for k value
-					path_out = global_path_results + root + "/" + prefix + base + ".csv";
+					path_out = global_path_results + root + "/" + base + ".csv";
 					std::string csv_text = csv_text + std::to_string(k) + "," + diff_result;
 					write_table(path_out, csv_text);
 				}

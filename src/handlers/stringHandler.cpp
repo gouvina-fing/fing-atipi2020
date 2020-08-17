@@ -34,5 +34,5 @@ std::string parse_PSNR(const std::string text) {
     }
 
     std::string result = seglist.front();
-    return result.substr(2, result.length() - 5);
+    return result.substr(1, result.length() - 4);
 }
