@@ -22,6 +22,9 @@ std::string get_file_name(const std::string path);
 // Create directory specified in 'path'
 short add_directory(const std::string path);
 
+// Remove directory specified in 'path'
+short remove_directory(const std::string path);
+
 // Read content from file 'path' and get PGM header, saving dimensions in 'width' and 'height'
 short read_PGM_header(const std::string path, short &width, short &height);
 

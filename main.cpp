@@ -6,7 +6,7 @@
 #include <denoiser.h>
 #include <models/imageModel.h>
 #include <managers/imageManager.h>
-#include <handlers/errorHandler.h>
+#include <handlers/logHandler.h>
 #include <const.h>
 
 // TODO: Make a script that runs all the required combinations for the experimentations and stores results in named images and a csv

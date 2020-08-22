@@ -25,5 +25,6 @@ const std::string ERROR_FILE_DAMAGED_MSG = "(Error, FileHandler) - Cannot open f
 const std::string ERROR_FILE_BAD_HEADER_MSG = "(Error, FileHandler) - Bad formatted file, incorrect PGM header\n";
 const std::string ERROR_FILE_BAD_DIMENSIONS_MSG = "(Error, FileHandler) - Bad formatted file, incorrect PGM dimensions\n";
 const std::string ERROR_FILE_BAD_BPP_MSG = "(Error, FileHandler) - Bad formatted file, incorrect PGM bpp\n";
+const std::string ERROR_DIRECTORY_MSG = "(Error, FileHandler) - Bad directory name\n";
 
 #endif
