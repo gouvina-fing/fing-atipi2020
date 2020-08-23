@@ -196,13 +196,7 @@ int main(int argc, char** argv) {
 					dude(delta, k, img_in, img_prefiltered, img_out);
 
 					// Format current image's denoised version file name
-					path_out = global_path_out;
-					path_out += base;
-					path_out += "/";
-					path_out += original_base;
-					path_out += "_";
-					path_out += std::to_string(i);
-					path_out += ".pgm";
+					path_out = global_path_out + base + "/" + original_base + "_" + std::to_string(i) + ".pgm";
 					log_msg("Image " + file_name + " - Result path = " + path_out);
 
 					// Write current image's denoised version
