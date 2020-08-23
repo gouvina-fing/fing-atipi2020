@@ -2,7 +2,6 @@
 #include "denoiser.h"
 #include <math.h>
 #include <algorithm>
-#include <cstdio> // TODO: Remove this (printf)
 
 // Allocate memory for all auxiliary variables and for the output image to be written
 void allocate_memory(short ***A, short ***contexts, struct HistogramData **histograms, unsigned char ***img_out, ImageModel img_in, short histograms_length) {
