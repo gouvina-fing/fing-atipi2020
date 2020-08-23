@@ -27,8 +27,15 @@ std::string get_file_name(const std::string path) {
 
 // Create directory specified in 'path'
 short add_directory(const std::string path) {
-
     if (std::filesystem::create_directory(path))
+        return OK;
+    else
+        return ERROR_DIRECTORY;
+}
+
+// Remove directory specified in 'path'
+short remove_directory(const std::string path) {
+    if (std::filesystem::remove_all(path))
         return OK;
     else
         return ERROR_DIRECTORY;
