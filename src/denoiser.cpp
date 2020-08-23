@@ -197,7 +197,6 @@ void denoise(short **contexts, struct HistogramData *histograms, ImageModel img_
 }
 
 // Free all memory that was created for auxiliary structures
-// TODO: FIXME: Esto explota cuando la imagen es un cuadrado vertical (mas alto que ancho)
 void free_memory(short ***A, short ***contexts, struct HistogramData **histograms, ImageModel img_in) {
     // Context matrix and auxiliary matrix
     for (short i = 0; i < img_in.getHeight(); ++i) {
@@ -265,5 +264,5 @@ void dude(float delta, short k, ImageModel img_in, ImageModel img_prefiltered, I
     img_out.setWidth(img_in.getWidth());
     img_out.setMatrix(matrix_out);
 
-    // free_memory(&A, &contexts, &histograms, img_in);
+    free_memory(&A, &contexts, &histograms, img_in);
 }
