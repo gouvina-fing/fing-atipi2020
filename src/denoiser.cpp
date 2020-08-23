@@ -245,7 +245,7 @@ void dude(float delta, short k, ImageModel img_in, ImageModel img_prefiltered, I
     short histograms_length = pow(2, 4+k);
 
     allocate_memory(&A, &contexts, &histograms, &matrix_out, img_in, histograms_length);
-    initialize_auxiliary_contexts(A, img_in);
+    initialize_auxiliary_contexts(A, img_in); 
     initialize_histograms(histograms, histograms_length);
 
     // Step 1: Calculate empirical distribution for each context

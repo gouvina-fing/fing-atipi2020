@@ -1,6 +1,7 @@
 #ifndef DENOISER_H
 #define DENOISER_H
 
+#include <iostream>
 #include <models/imageModel.h>
 
 #define M 256
