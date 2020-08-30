@@ -1,5 +1,5 @@
 CC = g++
-CFLAGS = -g -Wall -w --std=c++17
+CFLAGS = -g -Wall -w --std=c++17 -Os
 
 INCLUDE_DIR = include
 SRC_DIR = src

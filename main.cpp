@@ -9,8 +9,6 @@
 #include <handlers/logHandler.h>
 #include <const.h>
 
-// TODO: Make a script that runs all the required combinations for the experimentations and stores results in named images and a csv
-
 // Main method
 int main(int argc, char** argv){
 

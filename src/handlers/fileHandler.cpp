@@ -110,7 +110,6 @@ short read_PGM_content(const std::string path, short width, short height, unsign
             for (short j = 0; j < width; j++) {
                 file.read(reinterpret_cast<char*>(&c_aux), sizeof(char));
                 matrix[i][j] = static_cast<unsigned char>(c_aux);
-                // file.read(reinterpret_cast<unsigned char*>(&matrix[i][j]), 1);
             }
         }
         
@@ -142,7 +141,6 @@ short write_PGM(const std::string path, short width, short height, unsigned char
         for (short i = 0; i < height; i++) {
             for (short j = 0; j < width; j++) {
                 file << matrix[i][j];
-                // file.write(reinterpret_cast<const unsigned unsigned char*>(&matrix[i][j]), 1);
             }
         }
 
