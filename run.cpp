@@ -8,8 +8,7 @@
 // Local dependencies
 #include <denoiser.h>
 #include <models/imageModel.h>
-#include <managers/imageManager.h>
-#include <managers/dataManager.h>
+#include <handlers/imageHandler.h>
 #include <handlers/fileHandler.h>
 #include <handlers/logHandler.h>
 #include <handlers/stringHandler.h>
@@ -119,7 +118,7 @@ int main(int argc, char** argv) {
 					// Write CSV line with PSNR for k value
 					path_out = global_path_results + root + "/" + base + ".csv";
 					csv_text = std::to_string(k) + "," + diff_result;
-					write_table(path_out, csv_text);
+					write_CSV(path_out, csv_text);
 				}
 			}
 		break;
@@ -182,7 +181,7 @@ int main(int argc, char** argv) {
 				// Write CSV line with PSNR for k value
 				path_out_csv = global_path_results_prefilter + root + "/" + original_base + ".csv";
 				csv_text = std::to_string(0) + "," + diff_result;
-				write_table(path_out_csv, csv_text);
+				write_CSV(path_out_csv, csv_text);
 
 				img_prefiltered.setEmpty(false);
 
@@ -217,7 +216,7 @@ int main(int argc, char** argv) {
 					
 					// Write CSV line with PSNR for k value
 					csv_text = std::to_string(i) + "," + diff_result;
-					write_table(path_out_csv, csv_text);
+					write_CSV(path_out_csv, csv_text);
 				}
 			}
 		break;

@@ -5,7 +5,7 @@
 // Local dependencies
 #include <denoiser.h>
 #include <models/imageModel.h>
-#include <managers/imageManager.h>
+#include <handlers/imageHandler.h>
 #include <handlers/logHandler.h>
 #include <const.h>
 

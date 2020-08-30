@@ -25,15 +25,6 @@ short add_directory(const std::string path);
 // Remove directory specified in 'path'
 short remove_directory(const std::string path);
 
-// Read content from file 'path' and get PGM header, saving dimensions in 'width' and 'height'
-short read_PGM_header(const std::string path, short &width, short &height);
-
-// Read content from file 'path' and get PGM content, saving it in 'matrix'
-short read_PGM_content(const std::string path, short width, short height, unsigned char** matrix);
-
-// Write in file 'path' a binary representation of 'matrix'
-short write_PGM(const std::string path, short width, short height, unsigned char** matrix);
-
 // Create and write in file 'path' a CSV table contained in text
 short write_CSV(const std::string path, const std::string text);
 
